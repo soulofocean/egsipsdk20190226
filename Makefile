@@ -1,0 +1,43 @@
+
+ifndef USER_APP
+USER_APP:=demo
+endif
+ifndef PLATFORM
+PLATFORM:=linux
+endif
+
+EGSIPSDK_LIB_NAME:=egsipsdk_$(PLATFORM)
+
+
+TOPDIR:=${CURDIR}
+
+APP_SRC_PATH:=$(TOPDIR)/user_app/$(USER_APP)
+PLATFORM_SRC_PATH:=$(TOPDIR)/platform/$(PLATFORM)
+
+EGSIPSDK_DIR:=$(TOPDIR)
+BUILD_DIR:=$(EGSIPSDK_DIR)/build_dir
+PLATFORM_BUILD_DIR:=$(BUILD_DIR)/platform_$(PLATFORM)
+APP_BUILD_DIR:=$(BUILD_DIR)/$(EGSIPSDK_LIB_NAME)_$(USER_APP)
+BIN_OUT_DIR:=$(EGSIPSDK_DIR)/bin/$(PLATFORM)
+LIB_OUT_DIR:=$(EGSIPSDK_DIR)/lib/$(PLATFORM)
+
+export USER_APP APP_BUILD_DIR PLATFORM PLATFORM_BUILD_DIR EGSIPSDK_DIR \
+	BIN_OUT_DIR LIB_OUT_DIR EGSIPSDK_LIB_NAME
+
+all: clean src_prepare usr_app
+
+usr_app: platform_lib
+	make -C $(APP_BUILD_DIR)/ 
+
+platform_lib:
+	make -C $(PLATFORM_BUILD_DIR)/ platform_lib
+
+clean:
+	rm -rf $(APP_BUILD_DIR)
+	rm -rf $(PLATFORM_BUILD_DIR)
+
+src_prepare:
+	mkdir -p $(APP_BUILD_DIR)
+	mkdir -p $(PLATFORM_BUILD_DIR)
+	cp -rf $(APP_SRC_PATH)/* $(APP_BUILD_DIR)/
+	cp -rf $(PLATFORM_SRC_PATH)/* $(PLATFORM_BUILD_DIR)/

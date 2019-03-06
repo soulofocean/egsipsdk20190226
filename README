@@ -1,0 +1,22 @@
+( <platform> 平台名称 ) 
+
+bin ------------- 最终应用程序或固件的生成目录
+    <platform> -- 存放相应平台生成的应用程序或固件的目录
+
+include --------- 存放SDK头文件，平台抽象接口头文件
+
+lib ------------- 存放SDK库和平台抽象接口库的目录
+    <platform> -- 存放相应平台生成的SDK库和平台抽象接口库的目录
+
+platform -------- 存放平台相关的文件，主要是Makefile文件
+    <platform> -- 存放平台相关的文件，主要是Makefile文件
+
+user_app -------- 存放设备应用控制部分的目录
+    demo -------- 存放设备应用控制DEMO程序
+
+编绎demo可使用命令:
+	make 或 make USER_APP=demo
+
+编写新的用户程序, 请放到user_app目录下, 例如：user_app/xxx, 使用以下命令编绎:
+	make USER_APP=xxx
+
