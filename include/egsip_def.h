@@ -1,11 +1,10 @@
 #ifndef _EGSIP_DEF_H_
 #define _EGSIP_DEF_H_
-
 // 设备状态编码
 typedef enum _EGSIP_DEV_STATUS_CODE
 {
     EGSIP_DEV_STATUS_STOPED          = 0,    // 设备未初始化，功能完全不可用 (ip未配置，功能模块未初始化等)
-//    EGSC_DEV_STATUS_TO_CONNECT      = 1,
+//    EGSIP_DEV_STATUS_TO_CONNECT      = 1,
     EGSIP_DEV_STATUS_TO_REGISTER     = 2,    // 设备已初始化，未注册到服务器 (只有本地功能可用)
     EGSIP_DEV_STATUS_WORKING         = 3,    // 设备已注册到服务器 (功能完全可用)
 }EGSIP_DEV_STATUS_CODE;
