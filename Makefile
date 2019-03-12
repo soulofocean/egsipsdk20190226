@@ -1,6 +1,6 @@
 
 ifndef USER_APP
-USER_APP:=demo
+USER_APP:=smart_device
 endif
 ifndef PLATFORM
 PLATFORM:=linux
