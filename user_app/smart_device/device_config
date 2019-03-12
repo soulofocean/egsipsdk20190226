@@ -1,0 +1,18 @@
+[{
+	"server_addr": "10.101.70.51:5060",
+	"local_addr": "172.24.11.15:5060",
+	"dev_type": 2001,
+	"call_dev_type": 0,
+	"vendor_num": 1001,
+	"mac": "000001055353",
+	"addr_code": "0",
+	"dev_number": 0,
+	"subdev_count": 1,
+	"subdev_info": 0,
+	"version": "V1.0.2_20181108001",
+	"subdev": [{
+		"subdev_type": 3001,
+		"mac": "000001055353",
+		"subdev_num": 1
+	}]
+}]
