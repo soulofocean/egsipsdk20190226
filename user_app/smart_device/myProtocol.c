@@ -34,6 +34,27 @@ int my_itoa(int intValue,char *outStr,int str_len)
 {
 	return snprintf(outStr,str_len,"%d",intValue);
 }
+int get_current_time_str(int withT,char*outStr)
+{
+	time_t nowtim;
+	struct tm *tm_now ;
+	time(&nowtim) ;
+	tm_now = localtime(&nowtim);
+	if(withT == 1)
+	{
+		sprintf(outStr, "%.4d-%.2d-%.2dT%.2d:%.2d:%.2d",
+			tm_now->tm_year+1900, tm_now->tm_mon+1,tm_now->tm_mday, tm_now->tm_hour, 
+			tm_now->tm_min, tm_now->tm_sec);
+	}
+	else
+	{
+		sprintf(outStr, "%.4d-%.2d-%.2d %.2d:%.2d:%.2d",
+			tm_now->tm_year+1900, tm_now->tm_mon+1,tm_now->tm_mday, tm_now->tm_hour, 
+			tm_now->tm_min, tm_now->tm_sec);
+	}
+	egsip_log_debug("timeStr = [%s]\n",outStr);
+	return 0;
+}
 /*将字符串source中的oldStr子串替换为destStr字串,存放在result中*/
 int replace_string(char *result, char *source, const char* oldStr, char *destStr)
 {

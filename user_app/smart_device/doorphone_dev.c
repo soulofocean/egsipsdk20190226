@@ -2,10 +2,12 @@
 #include "stdlib.h"
 #include "string.h"
 
-#include "mydev.h"
+#include "doorphone_dev.h"
 #include "media_mgmt.h"
 #include "mydev_json.h"
 #include "file_parse.h"
+
+#include "myMQ.h"
 
 typedef struct _egsip_dev_satus
 {
@@ -79,13 +81,15 @@ EGSIP_RET_CODE  mydev_lock_report(int handle, int sess_id, egsip_intercom_unlock
 // 设备状态回调函数实现
 void mydev_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_info)
 {
+	char msgTmp[1024] = {0}; 
+	sprintf(msgTmp,"handle(%d) status=[%d] desc=[%s]\n", handle,status,desc_info);
+    egsip_log_debug("%s\n", msgTmp);
+	PutSendMQ(msgTmp);
     if (desc_info == NULL)
     {
         egsip_log_debug("handle(%d)  fail.\n", handle);
         return;
     }
-
-    egsip_log_debug("handle(%d)\n", handle);
     int i;
     switch(status)
     {
@@ -512,6 +516,9 @@ void mydev_alarm_report_res_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
    egsip_log_debug("handle(%d).\n", handle);
    egsip_log_debug("req_id(%d).\n", msg_id);
    egsip_log_debug("ret(%d).\n",ret);
+   char tmp[1024]={0};
+   sprintf(tmp,"handle[%d] msg_id[%d] ret[%d]",handle,msg_id,ret);
+   PutSendMQ(tmp);
 }
 
 int mydev_alarm_report(char *arg)
@@ -526,6 +533,18 @@ int mydev_alarm_report(char *arg)
        egsip_log_info("report(%d) time =[%s].\n", loop,mydev_command_info.alarm_info[loop].event_time);
         g_mydev_req_if_tbl.acs_alarm_report_if(mydev_status[0].handle, (mydev_status[0].sess_id+7+loop), 
                                             mydev_alarm_report_res_cb, &(mydev_command_info.alarm_info[loop]));
+    }
+    return 0;
+}
+int doorphone_alarm_report(command_info *mydev_command_info)
+{
+	int loop = 0;
+	for(loop=0; loop<mydev_command_info->alarm_count; loop++)
+    {
+       egsip_log_info("report(%d) time =[%s].\n", loop,mydev_command_info->alarm_info[loop].event_time);
+        g_mydev_req_if_tbl.acs_alarm_report_if(mydev_status[0].handle, (mydev_status[0].sess_id+7+loop), 
+                                            mydev_alarm_report_res_cb, &(mydev_command_info->alarm_info[loop]));
+		egsip_log_info("report(%d) complete.\n",loop);
     }
     return 0;
 }
@@ -869,6 +888,7 @@ void *mydev_send_video_task_fn(void *arg)
     int    rtp_count   = 0;
     int    data_offset = 0;
     char   buf[BUFSIZE];
+	size_t nowarning;
 
     if((fp = fopen(PCAP_VIDEO_FILE,"r")) == NULL)
     {
@@ -949,7 +969,11 @@ void *mydev_send_video_task_fn(void *arg)
                 return NULL;
             }
 
-            fread(buf,(ptk_header->caplen - data_offset),1,fp);
+            nowarning = fread(buf,(ptk_header->caplen - data_offset),1,fp);
+			if(nowarning<0)
+			{
+				egsip_log_debug("nowarning = %u\n",nowarning);
+			}
 
             StRtpFixedHdr *rtp_head = (StRtpFixedHdr *)buf;
             //egsip_log_info("rtp pay load type %d\n",rtp_head->u7Payload);
@@ -1000,6 +1024,7 @@ void *mydev_send_audio_task_fn(void *arg)
     int    rtp_count = 0;
     int    data_offset = 0;
     char   buf[BUFSIZE];
+	size_t nowarning;
 
     if((fp = fopen(PCAP_AUDIO_FILE,"r")) == NULL)
     {
@@ -1080,7 +1105,11 @@ void *mydev_send_audio_task_fn(void *arg)
                 return NULL;
             }
 
-            fread(buf,(ptk_header->caplen - data_offset),1,fp);
+            nowarning = fread(buf,(ptk_header->caplen - data_offset),1,fp);
+			if(nowarning<0)
+			{
+				egsip_log_debug("nowarning = %u\n",nowarning);
+			}
 
             StRtpFixedHdr *rtp_head = (StRtpFixedHdr *)buf;
             //egsip_log_info("rtp pay load type %d\n",rtp_head->u7Payload);
@@ -1241,7 +1270,58 @@ int start_mydev_test()
 
     return 0;
 }
+void init_doorphone()
+{
+	// 设置服务器请求回调函数表
+	g_doorphone_status_cb = mydev_status_callback;
+    memset(&g_srv_req_cb_tbl, 0, sizeof(g_srv_req_cb_tbl));
+    g_srv_req_cb_tbl.called_cb             = mydev_called_cb;
+    g_srv_req_cb_tbl.call_answered_cb      = mydev_call_answered_cb;
+    g_srv_req_cb_tbl.call_stopped_cb       = mydev_call_stopped_cb;
+    g_srv_req_cb_tbl.stream_started_cb     = mydev_stream_started_cb;
+    g_srv_req_cb_tbl.load_certificate_cb   = mydev_load_certificate_cb;
+    g_srv_req_cb_tbl.read_certificate_cb   = mydev_read_certificate_cb;
+    g_srv_req_cb_tbl.delete_certificate_cb = mydev_delete_certificate_cb;
+    g_srv_req_cb_tbl.door_open_cb          = mydev_acs_door_open_cb;
+    g_srv_req_cb_tbl.get_door_param_cb     = mydev_get_door_param_cb;
+    g_srv_req_cb_tbl.set_door_param_cb     = mydev_set_door_param_cb;
+    g_srv_req_cb_tbl.device_upgrade_cb     = mydev_device_upgrade_cb;
+    g_srv_req_cb_tbl.set_pic_storage_cb    = mydev_set_pic_storage_cb;
+    //g_srv_req_cb_tbl.get_pic_storage_cb    = mydev_get_pic_storage_cb;
 
+    memset(&mydev_door_pa, 0, sizeof(mydev_door_pa));
+    memset(mydev_cert_pa, 0, sizeof(mydev_cert_pa));
+    memset(mydev_status, 0, sizeof(egsip_dev_satus)*MAX_CERT);
+
+    int i = 0;
+    parameters_info dev_para;
+    memset(&dev_para, 0 , sizeof(parameters_info));
+
+    for(i = 0; i<MAX_CERT ; i++)
+    {
+        dev_para.cert_param_en[i] = 1;
+    }
+    dev_para.door_param_en = 1;
+    dev_para.pic_url_en    = 1;
+    user_file_load_parameters(&dev_para);
+
+    for(i = 0; i<5 ; i++)
+    {
+        memcpy(mydev_status[i].pic_url, &(dev_para.pic_url), sizeof(mydev_status[i].pic_url));
+    }
+
+    for(i = 0; i<MAX_CERT ; i++)
+    {
+        if(dev_para.cert_pa[i].using)
+        {
+            memcpy(&(mydev_cert_pa[i]), &(dev_para.cert_pa[i]), sizeof(egsip_cert_param));
+        }
+    }
+
+    memcpy(&mydev_door_pa, &(dev_para.door_pa), sizeof(mydev_door_pa));
+
+    mydev_test_start = 1;
+}
 // 设备初始化函数
 void mydev_init()
 {
@@ -1294,55 +1374,56 @@ void mydev_init()
     }
 #endif
 
-    // 设置服务器请求回调函数表
-    memset(&g_srv_req_cb_tbl, 0, sizeof(g_srv_req_cb_tbl));
-    g_srv_req_cb_tbl.called_cb             = mydev_called_cb;
-    g_srv_req_cb_tbl.call_answered_cb      = mydev_call_answered_cb;
-    g_srv_req_cb_tbl.call_stopped_cb       = mydev_call_stopped_cb;
-    g_srv_req_cb_tbl.stream_started_cb     = mydev_stream_started_cb;
-    g_srv_req_cb_tbl.load_certificate_cb   = mydev_load_certificate_cb;
-    g_srv_req_cb_tbl.read_certificate_cb   = mydev_read_certificate_cb;
-    g_srv_req_cb_tbl.delete_certificate_cb = mydev_delete_certificate_cb;
-    g_srv_req_cb_tbl.door_open_cb          = mydev_acs_door_open_cb;
-    g_srv_req_cb_tbl.get_door_param_cb     = mydev_get_door_param_cb;
-    g_srv_req_cb_tbl.set_door_param_cb     = mydev_set_door_param_cb;
-    g_srv_req_cb_tbl.device_upgrade_cb     = mydev_device_upgrade_cb;
-    g_srv_req_cb_tbl.set_pic_storage_cb    = mydev_set_pic_storage_cb;
-    //g_srv_req_cb_tbl.get_pic_storage_cb    = mydev_get_pic_storage_cb;
-
-    memset(&mydev_door_pa, 0, sizeof(mydev_door_pa));
-    memset(mydev_cert_pa, 0, sizeof(mydev_cert_pa));
-    memset(mydev_status, 0, sizeof(egsip_dev_satus)*MAX_CERT);
-
-    int i = 0;
-    parameters_info dev_para;
-    memset(&dev_para, 0 , sizeof(parameters_info));
-
-    for(i = 0; i<MAX_CERT ; i++)
-    {
-        dev_para.cert_param_en[i] = 1;
-    }
-    dev_para.door_param_en = 1;
-    dev_para.pic_url_en    = 1;
-    user_file_load_parameters(&dev_para);
-
-    for(i = 0; i<5 ; i++)
-    {
-        memcpy(mydev_status[i].pic_url, &(dev_para.pic_url), sizeof(mydev_status[i].pic_url));
-    }
-
-    for(i = 0; i<MAX_CERT ; i++)
-    {
-        if(dev_para.cert_pa[i].using)
-        {
-            memcpy(&(mydev_cert_pa[i]), &(dev_para.cert_pa[i]), sizeof(egsip_cert_param));
-        }
-    }
-
-    memcpy(&mydev_door_pa, &(dev_para.door_pa), sizeof(mydev_door_pa));
-
-    mydev_test_start = 1;
-    start_mydev_test();
+//    // 设置服务器请求回调函数表
+//    memset(&g_srv_req_cb_tbl, 0, sizeof(g_srv_req_cb_tbl));
+//    g_srv_req_cb_tbl.called_cb             = mydev_called_cb;
+//    g_srv_req_cb_tbl.call_answered_cb      = mydev_call_answered_cb;
+//    g_srv_req_cb_tbl.call_stopped_cb       = mydev_call_stopped_cb;
+//    g_srv_req_cb_tbl.stream_started_cb     = mydev_stream_started_cb;
+//    g_srv_req_cb_tbl.load_certificate_cb   = mydev_load_certificate_cb;
+//    g_srv_req_cb_tbl.read_certificate_cb   = mydev_read_certificate_cb;
+//    g_srv_req_cb_tbl.delete_certificate_cb = mydev_delete_certificate_cb;
+//    g_srv_req_cb_tbl.door_open_cb          = mydev_acs_door_open_cb;
+//    g_srv_req_cb_tbl.get_door_param_cb     = mydev_get_door_param_cb;
+//    g_srv_req_cb_tbl.set_door_param_cb     = mydev_set_door_param_cb;
+//    g_srv_req_cb_tbl.device_upgrade_cb     = mydev_device_upgrade_cb;
+//    g_srv_req_cb_tbl.set_pic_storage_cb    = mydev_set_pic_storage_cb;
+//    //g_srv_req_cb_tbl.get_pic_storage_cb    = mydev_get_pic_storage_cb;
+//
+//    memset(&mydev_door_pa, 0, sizeof(mydev_door_pa));
+//    memset(mydev_cert_pa, 0, sizeof(mydev_cert_pa));
+//    memset(mydev_status, 0, sizeof(egsip_dev_satus)*MAX_CERT);
+//
+//    int i = 0;
+//    parameters_info dev_para;
+//    memset(&dev_para, 0 , sizeof(parameters_info));
+//
+//    for(i = 0; i<MAX_CERT ; i++)
+//    {
+//        dev_para.cert_param_en[i] = 1;
+//    }
+//    dev_para.door_param_en = 1;
+//    dev_para.pic_url_en    = 1;
+//    user_file_load_parameters(&dev_para);
+//
+//    for(i = 0; i<5 ; i++)
+//    {
+//        memcpy(mydev_status[i].pic_url, &(dev_para.pic_url), sizeof(mydev_status[i].pic_url));
+//    }
+//
+//    for(i = 0; i<MAX_CERT ; i++)
+//    {
+//        if(dev_para.cert_pa[i].using)
+//        {
+//            memcpy(&(mydev_cert_pa[i]), &(dev_para.cert_pa[i]), sizeof(egsip_cert_param));
+//        }
+//    }
+//
+//    memcpy(&mydev_door_pa, &(dev_para.door_pa), sizeof(mydev_door_pa));
+//
+//    mydev_test_start = 1;
+	init_doorphone();
+    //start_mydev_test();
 }
 
 int mydev_del()

@@ -4,7 +4,7 @@
 #include <errno.h>
 #include <signal.h>
 
-#include "mydev.h"
+#include "doorphone_dev.h"
 
 void init_signals(void)
 {
@@ -18,7 +18,7 @@ void init_signals(void)
     sigaction(SIGPIPE, &sa, NULL);
 }
 
-int main(int argc, char *argv[])
+int main_old(int argc, char *argv[])
 {
     EGSIP_RET_CODE ret = EGSIP_RET_ERROR;
 
