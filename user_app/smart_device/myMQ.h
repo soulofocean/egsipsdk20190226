@@ -6,10 +6,10 @@
 #define MQ_RSV_BUFF sizeof(msg_struct)				 //DeQueue_MQ消息的大小 必须比ENQueue_MQ的大否则报错
 #define MQ_SEND_BUFF_SHORT sizeof(msg_short_struct) - sizeof(long)
 #define MQ_RSV_BUFF_SHORT sizeof(msg_short_struct)
-#define SOCKET_RSV_MQ_KEY 8888	//接收到的SOCKET消息缓存的MQKEY ftok(".",8) 
-#define SOCKET_SEND_MQ_KEY 9999 //将要通过SOCKET发送出去的MSG的缓存MQKEY ftok(".",9) 
-#define SOCKET_SEND_SHORT_MQ_KEY 6666 //将要通过SOCKET发送出去的SHORT_MSG的缓存MQKEY ftok(".",6) 
-#define DISPATCH_MQ_KEY 7777	//消息分发给各子设备的MQKEY ftok(".",7) 
+#define SOCKET_RSV_MQ_KEY 8887	//接收到的SOCKET消息缓存的MQKEY ftok(".",8) 
+#define SOCKET_SEND_MQ_KEY 9998 //将要通过SOCKET发送出去的MSG的缓存MQKEY ftok(".",9) 
+#define SOCKET_SEND_SHORT_MQ_KEY 6665 //将要通过SOCKET发送出去的SHORT_MSG的缓存MQKEY ftok(".",6) 
+#define DISPATCH_MQ_KEY 7776	//消息分发给各子设备的MQKEY ftok(".",7) 
 #define SOCKET_RSV_MSG_TYPE 1	//Socket接收到的数据放入MQ默认类型
 #define SOCKET_SEND_MSG_TYPE 2	//Socket发送出去的数据放入MQ默认类型
 #define DEV_INDEX_OFFSET 16			//预留16bit放设备序号，DEVTYPE<<16
