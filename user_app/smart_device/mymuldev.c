@@ -1016,7 +1016,7 @@ int my_dev_single_init(EGSIP_DEV_TYPE dev_type, int dev_offset)
 	{
 		mydev_del();
 	}
-	sleep(1);//等1秒再结束，为了防止主进程无限等待下去，待验证是否有效
+	//sleep(1);//等1秒再结束，为了防止主进程无限等待下去，待验证是否有效
 	egsip_log_info("[id:%s]DelDispatchMQ ret = %d\n",user_dev->dev_info.mac,ret);
     //ret = mydev_stop();
     egsip_dev_stop(user_dev->dev_handle);
@@ -1024,6 +1024,7 @@ int my_dev_single_init(EGSIP_DEV_TYPE dev_type, int dev_offset)
     egsip_dev_delete(user_dev->dev_handle);
 	free_dev_list();
 	egsip_log_info("[id:%s]mydev_delete ret = %d\n",user_dev->dev_info.mac,ret);
+	kill(getpid(),9);
     egsip_sdk_uninit();
 	return EGSIP_RET_SUCCESS;
 }

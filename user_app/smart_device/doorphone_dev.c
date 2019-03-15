@@ -1423,7 +1423,7 @@ void mydev_init()
 //
 //    mydev_test_start = 1;
 	init_doorphone();
-    //start_mydev_test();
+    start_mydev_test();
 }
 
 int mydev_del()
