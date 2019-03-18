@@ -1,6 +1,6 @@
 [{
 	"server_addr": "10.101.70.51:5060",
-	"local_addr": "172.24.11.15:5060",
+	"local_addr": "172.24.11.15:0",
 	"dev_type": 2011,
 	"call_dev_type": 3,
 	"vendor_num": 1001,

@@ -973,6 +973,7 @@ int my_dev_single_init(EGSIP_DEV_TYPE dev_type, int dev_offset)
         return ret;
     }
 	ret = genDevIDs(user_dev->dev_info.mac, strlen(user_dev->dev_info.mac),dev_offset);
+	user_dev->dev_info.dev_number += dev_offset;
 	if(user_dev->dev_info.subdev_count > 0)
     {
         for(loop=0; loop<user_dev->dev_info.subdev_count; loop++)
