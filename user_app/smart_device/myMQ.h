@@ -13,7 +13,8 @@
 #define SOCKET_RSV_MSG_TYPE 1	//Socket接收到的数据放入MQ默认类型
 #define SOCKET_SEND_MSG_TYPE 2	//Socket发送出去的数据放入MQ默认类型
 #define DEV_INDEX_OFFSET 16			//预留16bit放设备序号，DEVTYPE<<16
-#define DEV_OFFSET_OP 0xFFFF		//和上面的16bits对应s
+#define DEV_OFFSET_OP 0xFFFF		//和上面的16bits对应
+#define USE_LONG_MSG 1			//发长消息为1短消息为0，默认发长消息
 typedef struct _msgQueenDataType{
 	int offset;
 	int devType;
@@ -55,4 +56,5 @@ int GetSendShortMQ(msg_short_struct *msgbuff);
 int GetDispatchMQ(long msgType,msg_struct *msgbuff);
 int DelDispatchMQ(long msgType);
 int DeleteAllMQ(int max_msg_id);
+void DevMsgAck(int code,char* msg,int useLongMsg);
 #endif

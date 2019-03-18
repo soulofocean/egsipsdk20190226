@@ -84,7 +84,8 @@ void mydev_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_i
 	char msgTmp[1024] = {0}; 
 	sprintf(msgTmp,"handle(%d) status=[%d] desc=[%s]\n", handle,status,desc_info);
     egsip_log_debug("%s\n", msgTmp);
-	PutSendMQ(msgTmp);
+	//PutSendMQ(msgTmp);
+	DevMsgAck(status,msgTmp,USE_LONG_MSG);
     if (desc_info == NULL)
     {
         egsip_log_debug("handle(%d)  fail.\n", handle);
@@ -518,7 +519,8 @@ void mydev_alarm_report_res_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
    egsip_log_debug("ret(%d).\n",ret);
    char tmp[1024]={0};
    sprintf(tmp,"handle[%d] msg_id[%d] ret[%d]",handle,msg_id,ret);
-   PutSendMQ(tmp);
+   //PutSendMQ(tmp);
+   DevMsgAck(ret,tmp,USE_LONG_MSG);
 }
 
 int mydev_alarm_report(char *arg)

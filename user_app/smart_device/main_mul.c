@@ -44,16 +44,6 @@ void* socket_send_short_fn(void* arg)
 int main(int argc, char * argv [ ])
 {
 	EGSIP_RET_CODE ret = EGSIP_RET_ERROR;
-//	ret = egsip_sdk_init(printf);
-//    if(ret != EGSIP_RET_SUCCESS)
-//    {
-//        egsip_log_error("[main]egsip_sdk_init failed\n");
-//        return ret;
-//    }
-//	egsip_log_debug("After Init\n");
-//	egsip_sdk_uninit();
-//	egsip_log_debug("After UnInit\n");
-//	return 0;
 	egsip_log_level = EGSIP_LOG_DEBUG;
 	signal(SIGCHLD, SIG_IGN);//和主进程wait(NULL)选着搭配用防止僵尸进程,去掉后进程会提示为僵尸进程
 	signal(SIGPIPE, SIG_IGN);//Socket的异常断开处理忽略
