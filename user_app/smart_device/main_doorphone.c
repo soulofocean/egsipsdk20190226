@@ -18,7 +18,7 @@ void init_signals(void)
     sigaction(SIGPIPE, &sa, NULL);
 }
 
-int main_old(int argc, char *argv[])
+int main_doorphones(int argc, char *argv[])
 {
     EGSIP_RET_CODE ret = EGSIP_RET_ERROR;
 

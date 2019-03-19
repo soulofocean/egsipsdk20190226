@@ -3,7 +3,7 @@
 #include "string.h"
 #include <errno.h>
 
-#include "file_parse.h"
+#include "doorphone_file_parse.h"
 
 #define TEST_DEVICE_CONFIG_FILE_NAME     "./device_config_doorphone"
 #define TEST_COMMAND_CONFIG_FILE_NAME    "./command_config_doorphone"

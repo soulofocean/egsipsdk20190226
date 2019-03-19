@@ -1,0 +1,31 @@
+[{
+	"server_addr": "10.101.70.54:5060",
+	"local_addr": "172.24.11.239:5060",
+	"dev_type": 2001,
+	"call_dev_type": 0,
+	"vendor_num": 1001,
+	"mac": "000001055353",
+	"addr_code": "0",
+	"dev_type_desc": "hkipc",
+	"vendor_name": "HK",
+	"model": "hk7689",
+	"fw_version": "V5.5.53build180814",
+	"dev_number": 0,
+	"subdev_count": 1,
+	"subdev_info": 0,
+	"subdev": [{
+		"subdev_type": 3001,
+		"mac": "000001055353",
+		"subdev_num": 1,
+		"name": "HD_IPC0",
+		"vendor_name": "hk",
+		"model": "IPC",
+		"owner": "HD",
+		"civilcode": "CHINA",
+		"address": "CHINA-1",
+		"safetyway": 0,
+		"registerway": 1,
+		"secrecy": 0,
+		"status": 1
+	}]
+}]

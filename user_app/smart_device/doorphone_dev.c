@@ -2,10 +2,10 @@
 #include "stdlib.h"
 #include "string.h"
 
-#include "doorphone_dev.h"
+
 #include "media_mgmt.h"
 #include "mydev_json.h"
-#include "file_parse.h"
+#include "doorphone_file_parse.h"
 
 #include "myMQ.h"
 

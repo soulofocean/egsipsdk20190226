@@ -10,7 +10,7 @@
 #include<unistd.h>
 #include <sys/wait.h>
 #include "doorphone_dev.h"
-#include "file_parse.h"
+#include "doorphone_file_parse.h"
 static struct list_head s_mydev_cert_list_head;
 static struct list_head s_mydev_dev_list_head;
 mydev_json_obj s_device_config_obj = NULL;  //设备用户配置信息
@@ -18,7 +18,7 @@ mydev_json_obj s_device_config_obj = NULL;  //设备用户配置信息
 static int s_mydev_status = 0;
 static int s_mydev_dev_magic_num;           //设备唯一MAGIC数字
 
-#define MUL_DEVICE_CONFIG_FILE_NAME    "./device_config_doorphone"
+#define MUL_DEVICE_CONFIG_FILE_NAME    "./device_config_hkipc"
 static int user_dev_enqueue(struct list_head *head, user_dev_info *dev_obj, int *magic_num)
 {
     if( (NULL == dev_obj) ||
@@ -171,19 +171,14 @@ static int user_check_subdevice_type(int dev_type, int subdevice_type)
                 }
             }
         }
-        case EGSIP_TYPE_DOOR_CTRL:
+        case EGSIP_TYPE_CAMERA:
         {
             switch(subdevice_type)
             {
-                //EGSIP_TYPE_DOOR_CTRL     = 2009, // 门禁控制器
-                case EGSIP_SUBTYPE_DOOR_READER:                                  // 门禁读头
-                case EGSIP_SUBTYPE_DOOR_FACE_READER:                             // 门禁人脸读卡器
-                case EGSIP_SUBTYPE_DOOR_FINGER_READER:                           // 门禁指纹识别读卡器
-                case EGSIP_SUBTYPE_DOOR_QR_READER:                               // 门禁二维码读卡器
-                case EGSIP_SUBTYPE_DOOR_BLUETOOTH_READER:                        // 门禁蓝牙读卡器
-                case EGSIP_SUBTYPE_DOOR_PASSWORD_KEYBOARD:                       // 门禁密码输入键盘
-                case EGSIP_SUBTYPE_DOOR_IC_CARD_READER:                          // 门禁IC读头
-                case EGSIP_SUBTYPE_DOOR_CPU_CARD_READER:                         // 门禁CPU读头
+                //EGSIP_TYPE_CAMERA     = 2001, // IPC枪机
+                case EGSIP_SUBTYPE_CAMERA_VIDEO_CHANNEL:                         // IPC枪机通道
+                case EGSIP_SUBTYPE_CAMERA_ALERT_IN_CHANNEL:                      // IPC枪机告警输入通道
+                case EGSIP_SUBTYPE_CAMERA_ALERT_OUT_CHANNEL:                     // IPC枪机告警输出通道
                 {
                     valid = 1;
                     break;
@@ -872,6 +867,9 @@ int mydev_init_by_type(EGSIP_DEV_TYPE dev_type)
 			{
 				init_doorphone();
 				break;
+			}
+			case EGSIP_TYPE_CAMERA:
+			{
 			}
 			default:
 			{
