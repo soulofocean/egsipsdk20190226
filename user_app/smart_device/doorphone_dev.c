@@ -8,8 +8,9 @@
 #include "doorphone_file_parse.h"
 
 #include "myMQ.h"
+#define  MAX_USERS 5   //每个IPC最多5路流
 
-typedef struct _egsip_dev_satus
+typedef struct _egsip_doorphone_dev_satus
 {
     int using;
     int dev_call;
@@ -18,16 +19,17 @@ typedef struct _egsip_dev_satus
     char pic_url[128];
     EGSIP_DEV_STREAM_TYPE stream_flag;
     egsip_dev_call_info call_info;
-}egsip_dev_satus;
+}egsip_doorphone_dev_satus;
+
 
 //static egsip_subdev_info   g_subdev[6] = {0};
-static egsip_dev_satus       mydev_status[MAX_CERT];
+static egsip_doorphone_dev_satus       mydev_status[MAX_CERT];
 static int                   mydev_test_start;
 static egsip_door_param_type mydev_door_pa;
-static egsip_cert_param      mydev_cert_pa[MAX_CERT];
+static egsip_doorphone_cert_param      mydev_cert_pa[MAX_CERT];
 static int                   video_format = 96;
 
-void mydev_record_report_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
+void doorphone_record_report_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
 {
    egsip_log_debug("enter.\n");
    egsip_log_debug("handle(%d).\n", handle);
@@ -36,15 +38,15 @@ void mydev_record_report_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
 }
 
 // 门禁记录主动上报
-EGSIP_RET_CODE  mydev_record_report(int handle, int sess_id, egsip_acs_record_type *record)
+EGSIP_RET_CODE  doorphone_record_report(int handle, int sess_id, egsip_acs_record_type *record)
 {
     egsip_log_info("report info\n");
-    g_doorphone_req_if_tbl.record_report_if(handle, sess_id, mydev_record_report_cb, record);
+    g_doorphone_req_if_tbl.record_report_if(handle, sess_id, doorphone_record_report_cb, record);
 
     return 0;
 }
 
-void mydev_call_report_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
+void doorphone_call_report_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
 {
    egsip_log_debug("enter.\n");
    egsip_log_debug("handle(%d).\n", handle);
@@ -53,15 +55,15 @@ void mydev_call_report_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
 }
 
 // 对讲记录主动上报
-EGSIP_RET_CODE  mydev_call_report(int handle, int sess_id, egsip_intercom_record_report_info *record)
+EGSIP_RET_CODE  doorphone_call_report(int handle, int sess_id, egsip_intercom_record_report_info *record)
 {
     egsip_log_info("report info\n");
-    g_doorphone_req_if_tbl.intercom_report_if(handle, sess_id, mydev_call_report_cb, record);
+    g_doorphone_req_if_tbl.intercom_report_if(handle, sess_id, doorphone_call_report_cb, record);
 
     return 0;
 }
 
-void mydev_lock_report_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
+void doorphone_lock_report_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
 {
    egsip_log_debug("enter.\n");
    egsip_log_debug("handle(%d).\n", handle);
@@ -70,16 +72,16 @@ void mydev_lock_report_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
 }
 
 // 开锁记录主动上报
-EGSIP_RET_CODE  mydev_lock_report(int handle, int sess_id, egsip_intercom_unlock_record_report_info *record)
+EGSIP_RET_CODE  doorphone_lock_report(int handle, int sess_id, egsip_intercom_unlock_record_report_info *record)
 {
     egsip_log_info("report info\n");
-    g_doorphone_req_if_tbl.intercom_unlock_report_if(handle, sess_id, mydev_lock_report_cb, record);
+    g_doorphone_req_if_tbl.intercom_unlock_report_if(handle, sess_id, doorphone_lock_report_cb, record);
 
     return 0;
 }
 
 // 设备状态回调函数实现
-void mydev_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_info)
+void doorphone_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_info)
 {
 	char msgTmp[1024] = {0}; 
 	sprintf(msgTmp,"handle(%d) status=[%d] desc=[%s]\n", handle,status,desc_info);
@@ -102,7 +104,7 @@ void mydev_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_i
             {
                 if(mydev_status[i].handle == handle)
                 {
-                    memset(&(mydev_status[i]), 0, sizeof(egsip_dev_satus));
+                    memset(&(mydev_status[i]), 0, sizeof(egsip_doorphone_dev_satus));
                     break;
                 }
             }
@@ -117,7 +119,7 @@ void mydev_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_i
 }
 
 // 被呼叫的回调函数实现
-EGSIP_RET_CODE mydev_called_cb(int handle, int sess_id, egsip_dev_call_info *call_info)
+EGSIP_RET_CODE doorphone_called_cb(int handle, int sess_id, egsip_dev_call_info *call_info)
 {
     if (call_info == NULL)
     {
@@ -154,7 +156,7 @@ EGSIP_RET_CODE mydev_called_cb(int handle, int sess_id, egsip_dev_call_info *cal
 }
 
 // 流传输开始通知回调函数实现
-EGSIP_RET_CODE mydev_stream_started_cb(int handle, int sess_id, EGSIP_DEV_STREAM_TYPE stream_flag)
+EGSIP_RET_CODE doorphone_stream_started_cb(int handle, int sess_id, EGSIP_DEV_STREAM_TYPE stream_flag)
 {
     egsip_log_debug("handle(%d) sess_id(%d) start stream_flag(%d) frame.\n", handle, sess_id,stream_flag);
     int i = 0;
@@ -171,7 +173,7 @@ EGSIP_RET_CODE mydev_stream_started_cb(int handle, int sess_id, EGSIP_DEV_STREAM
 }
 
 // 呼叫被应答回调函数实现
-EGSIP_RET_CODE mydev_call_answered_cb(int handle, int sess_id)
+EGSIP_RET_CODE doorphone_call_answered_cb(int handle, int sess_id)
 {
     egsip_log_debug("handle(%d) sess_id(%d)\n", handle, sess_id);
     
@@ -179,7 +181,7 @@ EGSIP_RET_CODE mydev_call_answered_cb(int handle, int sess_id)
 }
 
 // 呼叫被停止回调函数实现
-EGSIP_RET_CODE  mydev_call_stopped_cb(int handle, int sess_id, int status)
+EGSIP_RET_CODE  doorphone_call_stopped_cb(int handle, int sess_id, int status)
 {
     egsip_log_debug("handle(%d) sess_id(%d) status:%d\n", handle, sess_id, status);
     int i = 0;
@@ -187,7 +189,7 @@ EGSIP_RET_CODE  mydev_call_stopped_cb(int handle, int sess_id, int status)
     {
         if((mydev_status[i].handle == handle)&&(mydev_status[i].sess_id == sess_id))
         {
-            memset(&(mydev_status[i]), 0, sizeof(egsip_dev_satus));
+            memset(&(mydev_status[i]), 0, sizeof(egsip_doorphone_dev_satus));
 
             char *url_pic = "jpge/test.jpg";
             char *invite_time = "2019-02-01 08:50:32";
@@ -201,7 +203,7 @@ EGSIP_RET_CODE  mydev_call_stopped_cb(int handle, int sess_id, int status)
             open_record.lock = 1;
             open_record.url_pic = url_pic;
 
-            //mydev_call_report(mydev_status[i].handle, (mydev_status[i].sess_id+1), &open_record);
+            //doorphone_call_report(mydev_status[i].handle, (mydev_status[i].sess_id+1), &open_record);
             break;
         }
     }
@@ -210,7 +212,7 @@ EGSIP_RET_CODE  mydev_call_stopped_cb(int handle, int sess_id, int status)
 }
 
 // *** 门禁权限服务器下发通知 *** 
-EGSIP_RET_CODE mydev_load_certificate_cb(int handle, egsip_dev_cb_certificate_param *cert_param)
+EGSIP_RET_CODE doorphone_load_certificate_cb(int handle, egsip_dev_cb_certificate_param *cert_param)
 {
     if (cert_param == NULL)
     {
@@ -224,8 +226,8 @@ EGSIP_RET_CODE mydev_load_certificate_cb(int handle, egsip_dev_cb_certificate_pa
                     cert_param->end_time, cert_param->sub_dev[0].id, cert_param->credence_type,
                     cert_param->credence_no, cert_param->op_time);
 
-    parameters_info dev_para;
-    memset(&dev_para, 0 , sizeof(parameters_info));
+    doorphone_parameters_info dev_para;
+    memset(&dev_para, 0 , sizeof(doorphone_parameters_info));
     int i;
     for(i=0; i<MAX_CERT; i++)
     {
@@ -241,7 +243,7 @@ EGSIP_RET_CODE mydev_load_certificate_cb(int handle, egsip_dev_cb_certificate_pa
             memcpy(&(mydev_cert_pa[i].cert_param), cert_param, sizeof(egsip_dev_cb_certificate_param));
 
             dev_para.cert_param_en[i] = 1;
-            memcpy(&(dev_para.cert_pa[i]), &mydev_cert_pa[i], sizeof(egsip_cert_param));
+            memcpy(&(dev_para.cert_pa[i]), &mydev_cert_pa[i], sizeof(egsip_doorphone_cert_param));
             user_file_store_doorphone_parameters(&dev_para);
             break;
         }
@@ -259,7 +261,7 @@ EGSIP_RET_CODE mydev_load_certificate_cb(int handle, egsip_dev_cb_certificate_pa
     return EGSIP_RET_SUCCESS;
 }
 
-EGSIP_RET_CODE mydev_read_certificate_cb(int handle, int credence_type, char *credence_no,
+EGSIP_RET_CODE doorphone_read_certificate_cb(int handle, int credence_type, char *credence_no,
                                           egsip_dev_cb_certificate_param *dev_param)
 {
     if ((credence_no == NULL)||(dev_param == NULL))
@@ -269,8 +271,8 @@ EGSIP_RET_CODE mydev_read_certificate_cb(int handle, int credence_type, char *cr
     }
 
     int i;
-    parameters_info dev_para;
-    memset(&dev_para, 0 , sizeof(parameters_info));
+    doorphone_parameters_info dev_para;
+    memset(&dev_para, 0 , sizeof(doorphone_parameters_info));
     for(i=0; i<MAX_CERT; i++)
     {
         if((mydev_cert_pa[i].using) && 
@@ -305,7 +307,7 @@ credence_no:%s op_time:%s\n",
 }
 
 // *** 删除门禁权限服务器下发通知 *** 
-EGSIP_RET_CODE mydev_delete_certificate_cb(int handle, int credence_type, char *credence_no,
+EGSIP_RET_CODE doorphone_delete_certificate_cb(int handle, int credence_type, char *credence_no,
                                                      char *subdevice_id, char *user_id)
 {
     if ((credence_no == NULL)||(subdevice_id == NULL)||(user_id == NULL))
@@ -314,8 +316,8 @@ EGSIP_RET_CODE mydev_delete_certificate_cb(int handle, int credence_type, char *
         return EGSIP_RET_DATA_ERROR;
     }
 
-    parameters_info dev_para;
-    memset(&dev_para, 0 , sizeof(parameters_info));
+    doorphone_parameters_info dev_para;
+    memset(&dev_para, 0 , sizeof(doorphone_parameters_info));
     int i;
     for(i=0; i<MAX_CERT; i++)
     {
@@ -324,7 +326,7 @@ EGSIP_RET_CODE mydev_delete_certificate_cb(int handle, int credence_type, char *
         {
             dev_para.cert_param_en[i] = 1;
             user_file_del_doorphone_parameters(&dev_para);
-            memset(&(mydev_cert_pa[i]), 0,  sizeof(egsip_cert_param));
+            memset(&(mydev_cert_pa[i]), 0,  sizeof(egsip_doorphone_cert_param));
             break;
         }
     }
@@ -348,7 +350,7 @@ credence_no:%s op_time:%s\n",
 }
 
 //开门
-EGSIP_RET_CODE mydev_acs_door_open_cb(int handle, int sess_id, egsip_door_open_type *door_open)
+EGSIP_RET_CODE doorphone_acs_door_open_cb(int handle, int sess_id, egsip_door_open_type *door_open)
 {
     if (door_open == NULL)
     {
@@ -381,7 +383,7 @@ EGSIP_RET_CODE mydev_acs_door_open_cb(int handle, int sess_id, egsip_door_open_t
     open_record.mode = 1;
     open_record.result = 1;
 
-    mydev_lock_report(handle, (sess_id+1), &open_record);
+    doorphone_lock_report(handle, (sess_id+1), &open_record);
 
 #if 0
     //门禁记录上报
@@ -396,13 +398,13 @@ EGSIP_RET_CODE mydev_acs_door_open_cb(int handle, int sess_id, egsip_door_open_t
     record.pass_type   = abs(rand())%2;
     record.credence_no = "aaaaaaaaaabbbbbbbbbbbb";//凭证唯一标识
     
-    mydev_record_report(handle, sess_id, &record);
+    doorphone_record_report(handle, sess_id, &record);
 #endif
 
     return EGSIP_RET_SUCCESS;
 }
 
-EGSIP_RET_CODE mydev_set_pic_storage_cb(int handle, int sess_id, char *http_url)
+EGSIP_RET_CODE doorphone_set_pic_storage_cb(int handle, int sess_id, char *http_url)
 {
     if ((http_url == NULL) && (strlen(http_url) > 127))
     {
@@ -410,8 +412,8 @@ EGSIP_RET_CODE mydev_set_pic_storage_cb(int handle, int sess_id, char *http_url)
         return EGSIP_RET_DATA_ERROR;
     }
 
-    parameters_info dev_para;
-    memset(&dev_para, 0 , sizeof(parameters_info));
+    doorphone_parameters_info dev_para;
+    memset(&dev_para, 0 , sizeof(doorphone_parameters_info));
     int i = 0;
     for(i=0;i<MAX_USERS;i++)
     {
@@ -430,10 +432,10 @@ EGSIP_RET_CODE mydev_set_pic_storage_cb(int handle, int sess_id, char *http_url)
     return EGSIP_RET_SUCCESS;
 }
 
-EGSIP_RET_CODE mydev_get_pic_storage_cb(int handle, int sess_id, char *http_url)
+EGSIP_RET_CODE doorphone_get_pic_storage_cb(int handle, int sess_id, char *http_url)
 {
-    parameters_info dev_para;
-    memset(&dev_para, 0 , sizeof(parameters_info));
+    doorphone_parameters_info dev_para;
+    memset(&dev_para, 0 , sizeof(doorphone_parameters_info));
     int i = 0;
     for(i=0;i<MAX_USERS;i++)
     {
@@ -454,7 +456,7 @@ EGSIP_RET_CODE mydev_get_pic_storage_cb(int handle, int sess_id, char *http_url)
     return EGSIP_RET_SUCCESS;
 }
 
-EGSIP_RET_CODE mydev_get_door_param_cb(int handle, int sess_id, egsip_door_param_type *door)
+EGSIP_RET_CODE doorphone_get_door_param_cb(int handle, int sess_id, egsip_door_param_type *door)
 {
     if (door == NULL)
     {
@@ -463,8 +465,8 @@ EGSIP_RET_CODE mydev_get_door_param_cb(int handle, int sess_id, egsip_door_param
     }
 
     //memcpy(door, &mydev_door_pa, sizeof(mydev_door_pa));
-    parameters_info dev_para;
-    memset(&dev_para, 0 , sizeof(parameters_info));
+    doorphone_parameters_info dev_para;
+    memset(&dev_para, 0 , sizeof(doorphone_parameters_info));
 
     dev_para.door_param_en = 1;
     user_file_load_doorphone_parameters(&dev_para);
@@ -475,7 +477,7 @@ EGSIP_RET_CODE mydev_get_door_param_cb(int handle, int sess_id, egsip_door_param
     return EGSIP_RET_SUCCESS;
 }
 
-EGSIP_RET_CODE mydev_set_door_param_cb(int handle, int sess_id, egsip_door_param_type *door)
+EGSIP_RET_CODE doorphone_set_door_param_cb(int handle, int sess_id, egsip_door_param_type *door)
 {
     if (door == NULL)
     {
@@ -487,8 +489,8 @@ EGSIP_RET_CODE mydev_set_door_param_cb(int handle, int sess_id, egsip_door_param
                 handle, sess_id, door->open_durationl, door->alarm_timeout, door->ntp_server);
 
     //memcpy(&mydev_door_pa, door, sizeof(mydev_door_pa));
-    parameters_info dev_para;
-    memset(&dev_para, 0 , sizeof(parameters_info));
+    doorphone_parameters_info dev_para;
+    memset(&dev_para, 0 , sizeof(doorphone_parameters_info));
 
     dev_para.door_param_en = 1;
     memcpy(&(dev_para.door_pa), door, sizeof(dev_para.door_pa));
@@ -497,7 +499,7 @@ EGSIP_RET_CODE mydev_set_door_param_cb(int handle, int sess_id, egsip_door_param
     return EGSIP_RET_SUCCESS;
 }
 
-EGSIP_RET_CODE mydev_device_upgrade_cb(int handle, int sess_id, char *file_url, char *ftp_addr)
+EGSIP_RET_CODE doorphone_device_upgrade_cb(int handle, int sess_id, char *file_url, char *ftp_addr)
 {
     if ((file_url == NULL) || (ftp_addr == NULL))
     {
@@ -511,7 +513,7 @@ EGSIP_RET_CODE mydev_device_upgrade_cb(int handle, int sess_id, char *file_url, 
     return EGSIP_RET_SUCCESS;
 }
 
-void mydev_alarm_report_res_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
+void doorphone_alarm_report_res_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
 {
    egsip_log_debug("enter.\n");
    egsip_log_debug("handle(%d).\n", handle);
@@ -523,10 +525,10 @@ void mydev_alarm_report_res_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
    DevMsgAck(ret,tmp,USE_LONG_MSG);
 }
 
-int mydev_alarm_report(char *arg)
+int doorphone_alarm_report_by_id(char *arg)
 {
     int loop = 0;
-    command_info  mydev_command_info;
+    doorphone_command_info  mydev_command_info;
     memset(&mydev_command_info, 0 ,sizeof(mydev_command_info));
     user_file_load_doorphone_command_config(&mydev_command_info);
 
@@ -534,24 +536,24 @@ int mydev_alarm_report(char *arg)
     {
        egsip_log_info("report(%d) time =[%s].\n", loop,mydev_command_info.alarm_info[loop].event_time);
         g_doorphone_req_if_tbl.acs_alarm_report_if(mydev_status[0].handle, (mydev_status[0].sess_id+7+loop), 
-                                            mydev_alarm_report_res_cb, &(mydev_command_info.alarm_info[loop]));
+                                            doorphone_alarm_report_res_cb, &(mydev_command_info.alarm_info[loop]));
     }
     return 0;
 }
-int doorphone_alarm_report(command_info *mydev_command_info)
+int doorphone_alarm_report(doorphone_command_info *mydev_command_info)
 {
 	int loop = 0;
 	for(loop=0; loop<mydev_command_info->alarm_count; loop++)
     {
        egsip_log_info("report(%d) time =[%s].\n", loop,mydev_command_info->alarm_info[loop].event_time);
         g_doorphone_req_if_tbl.acs_alarm_report_if(mydev_status[0].handle, (mydev_status[0].sess_id+7+loop), 
-                                            mydev_alarm_report_res_cb, &(mydev_command_info->alarm_info[loop]));
+                                            doorphone_alarm_report_res_cb, &(mydev_command_info->alarm_info[loop]));
 		egsip_log_info("report(%d) complete.\n",loop);
     }
     return 0;
 }
 
-void mydev_call_res_cb(int handle, int sess_id, EGSIP_RET_CODE ret, egsip_dev_call_info *call_info)
+void doorphone_call_res_cb(int handle, int sess_id, EGSIP_RET_CODE ret, egsip_dev_call_info *call_info)
 {
     if (call_info == NULL)
     {
@@ -571,7 +573,7 @@ void mydev_call_res_cb(int handle, int sess_id, EGSIP_RET_CODE ret, egsip_dev_ca
 }
 
 //主动呼叫
-int mydev_call_user(char *arg)
+int doorphone_call_user(char *arg)
 {
     int  sess_id = 7890;
     int  dev_num = 0;
@@ -606,14 +608,14 @@ int mydev_call_user(char *arg)
         mydev_status[dev_num].call_info.other_addr.dev_number = 1;
     }
 
-    ip_len = strstr(g_doorphonedev_info.local_addr, ":") - g_doorphonedev_info.local_addr;
+    ip_len = strstr(g_doorphone_dev_info.local_addr, ":") - g_doorphone_dev_info.local_addr;
     if(ip_len < 16)
     {
-        strncpy(local_ip, g_doorphonedev_info.local_addr, ip_len);
+        strncpy(local_ip, g_doorphone_dev_info.local_addr, ip_len);
     }
     else
     {
-        egsip_log_error("get local ip from (%s) failed\n", g_doorphonedev_info.local_addr);
+        egsip_log_error("get local ip from (%s) failed\n", g_doorphone_dev_info.local_addr);
     }
 
     mydev_status[dev_num].call_info.caller_recv_audio.enable = 1;
@@ -626,12 +628,12 @@ int mydev_call_user(char *arg)
     mydev_status[dev_num].call_info.caller_recv_video.recv_port = UDP_BASE_PORT+2;
     mydev_status[dev_num].call_info.caller_recv_video.format = video_format;
 
-    g_doorphone_req_if_tbl.call_if(mydev_status[dev_num].handle, mydev_status[dev_num].sess_id, mydev_call_res_cb, &(mydev_status[dev_num].call_info));
+    g_doorphone_req_if_tbl.call_if(mydev_status[dev_num].handle, mydev_status[dev_num].sess_id, doorphone_call_res_cb, &(mydev_status[dev_num].call_info));
 
     return 0;
 }
 
-void mydev_stop_call_res_cb(int handle, int sess_id, EGSIP_RET_CODE ret)
+void doorphone_stop_call_res_cb(int handle, int sess_id, EGSIP_RET_CODE ret)
 {
     egsip_log_debug("handle(%d) sess_id(%d) stop call\n", handle, sess_id);
     int i = 0;
@@ -639,14 +641,14 @@ void mydev_stop_call_res_cb(int handle, int sess_id, EGSIP_RET_CODE ret)
     {
         if((mydev_status[i].handle == handle)&&(mydev_status[i].sess_id == sess_id))
         {
-            memset(&(mydev_status[i]), 0, sizeof(egsip_dev_satus));
+            memset(&(mydev_status[i]), 0, sizeof(egsip_doorphone_dev_satus));
             break;
         }
     }
 }
 
 //主动挂断
-int mydev_stop_call_user(char *arg)
+int doorphone_stop_call_user(char *arg)
 {
     int i = 0;
 
@@ -654,7 +656,7 @@ int mydev_stop_call_user(char *arg)
     {
         if(mydev_status[i].dev_call == 1)
         {
-            g_doorphone_req_if_tbl.stop_call_if(mydev_status[i].handle, mydev_status[i].sess_id, mydev_stop_call_res_cb);
+            g_doorphone_req_if_tbl.stop_call_if(mydev_status[i].handle, mydev_status[i].sess_id, doorphone_stop_call_res_cb);
 
             char *url_pic = "jpge/test.jpg";
             char *invite_time = "2019-02-01 08:50:32";
@@ -668,14 +670,14 @@ int mydev_stop_call_user(char *arg)
             open_record.lock = 1;
             open_record.url_pic = url_pic;
 
-            mydev_call_report(mydev_status[i].handle, (mydev_status[i].sess_id+1), &open_record);
+            doorphone_call_report(mydev_status[i].handle, (mydev_status[i].sess_id+1), &open_record);
         }
     }
 
     return 0;
 }
 
-void mydev_call_lift_cb(int handle, int sess_id, EGSIP_RET_CODE ret)
+void doorphone_call_lift_cb(int handle, int sess_id, EGSIP_RET_CODE ret)
 {
     egsip_log_debug("handle(%d) sess_id(%d) calllift sucess.\n", handle, sess_id);
     int i = 0;
@@ -683,14 +685,14 @@ void mydev_call_lift_cb(int handle, int sess_id, EGSIP_RET_CODE ret)
     {
         if((mydev_status[i].handle == handle)&&(mydev_status[i].sess_id == sess_id))
         {
-            memset(&(mydev_status[i]), 0, sizeof(egsip_dev_satus));
+            memset(&(mydev_status[i]), 0, sizeof(egsip_doorphone_dev_satus));
             break;
         }
     }
 }
 
 //主动呼梯
-int mydev_call_lift(char *arg)
+int doorphone_call_lift(char *arg)
 {
     int sess_id = 7891;
     int dev_num = 0;
@@ -711,12 +713,12 @@ int mydev_call_lift(char *arg)
     mydev_status[dev_num].using = 1;
     mydev_status[dev_num].dev_call = 1;
 
-    g_doorphone_req_if_tbl.elev_control_if(mydev_status[dev_num].handle, mydev_status[dev_num].sess_id, mydev_call_lift_cb, dir);
+    g_doorphone_req_if_tbl.elev_control_if(mydev_status[dev_num].handle, mydev_status[dev_num].sess_id, doorphone_call_lift_cb, dir);
 
     return 0;
 }
 
-int mydev_open_door(void *arg)
+int doorphone_open_door(void *arg)
 {
     if (arg == NULL)
     {
@@ -754,7 +756,7 @@ int mydev_open_door(void *arg)
             record.pass_type   = abs(rand())%2;
             memcpy(record.credence_no, arg, sizeof(record.credence_no));
 
-            mydev_record_report(g_doorphone_dev_handle, sess_id, &record);
+            doorphone_record_report(g_doorphone_dev_handle, sess_id, &record);
 
             break;
         }
@@ -774,7 +776,7 @@ int mydev_open_door(void *arg)
 }
 
 
-void *mydev_input_test_task_fn(void *arg)
+void *doorphone_input_test_task_fn(void *arg)
 {
     int ret = 0;
     char *read_input = NULL;
@@ -805,7 +807,7 @@ void *mydev_input_test_task_fn(void *arg)
 
         if(strncmp(input_req, "alarm", strlen("alarm")) == 0)
         {
-            mydev_alarm_report(input_req_cont);
+            doorphone_alarm_report_by_id(input_req_cont);
         }
         else if(strncmp(input_req, "call", strlen("call")) == 0)
         {
@@ -817,7 +819,7 @@ void *mydev_input_test_task_fn(void *arg)
                 continue;
             }
             egsip_log_info("get user req content(%s).\n", input_req_cont);
-            mydev_call_user(input_req_cont);
+            doorphone_call_user(input_req_cont);
         }
         else if(strncmp(input_req, "stopcall", strlen("stopcall")) == 0)
         {
@@ -829,7 +831,7 @@ void *mydev_input_test_task_fn(void *arg)
                 continue;
             }
             egsip_log_info("get user req content(%s).\n", input_req_cont);
-            mydev_stop_call_user(input_req_cont);
+            doorphone_stop_call_user(input_req_cont);
         }
         else if(strncmp(input_req, "liftcall", strlen("liftcall")) == 0)
         {
@@ -841,11 +843,11 @@ void *mydev_input_test_task_fn(void *arg)
                 continue;
             }
             egsip_log_info("get user req content(%s).\n", input_req_cont);
-            mydev_call_lift(input_req_cont);
+            doorphone_call_lift(input_req_cont);
         }
         else if(strncmp(input_req, "alarm", strlen("alarm")) == 0)
         {
-            mydev_stop_call_user(input_req_cont);
+            doorphone_stop_call_user(input_req_cont);
         }
         else if(strncmp(input_req, "opendoor", strlen("opendoor")) == 0)
         {
@@ -857,7 +859,7 @@ void *mydev_input_test_task_fn(void *arg)
                 continue;
             }
             egsip_log_info("get user req content(%s).\n", input_req_cont);
-            mydev_open_door(input_req_cont);
+            doorphone_open_door(input_req_cont);
         }
         else if(strncmp(input_req, "video", strlen("video")) == 0)
         {
@@ -880,7 +882,7 @@ void *mydev_input_test_task_fn(void *arg)
     return 0;
 }
 
-void *mydev_send_video_task_fn(void *arg)
+void *doorphone_send_video_task_fn(void *arg)
 {
     struct pcap_pkthdr *ptk_header;
     FILE   *fp;
@@ -1016,7 +1018,7 @@ void *mydev_send_video_task_fn(void *arg)
     return NULL;
 }
 
-void *mydev_send_audio_task_fn(void *arg)
+void *doorphone_send_audio_task_fn(void *arg)
 {
     struct pcap_pkthdr *ptk_header;
     FILE   *fp;
@@ -1151,7 +1153,7 @@ void *mydev_send_audio_task_fn(void *arg)
     return NULL;
 }
 
-void *mydev_recv_media_task_fn(void *arg)
+void *doorphone_recv_media_task_fn(void *arg)
 {
     int fd;
     int ret;
@@ -1240,31 +1242,31 @@ void *mydev_recv_media_task_fn(void *arg)
     return 0;
 }
 
-int start_mydev_test_doorphone()
+int start_doorphone_test()
 {
     int ret = -1;
     int arg = 0;
     pthread_t task_id = 0;
 
-    ret = pthread_create( &task_id, NULL, mydev_input_test_task_fn, (void *)(&arg));
+    ret = pthread_create( &task_id, NULL, doorphone_input_test_task_fn, (void *)(&arg));
     if((ret < 0) || (task_id < 0))
     {
         egsip_log_debug("mydev test task create failed.\n");
     }
 
-    ret = pthread_create(&task_id, NULL,  mydev_send_video_task_fn, (void *)(&arg));
+    ret = pthread_create(&task_id, NULL,  doorphone_send_video_task_fn, (void *)(&arg));
     if((ret < 0) || (task_id < 0))
     {
         egsip_log_debug("mydev test task create failed.\n");
     }
 
-    ret = pthread_create(&task_id, NULL,  mydev_send_audio_task_fn, (void *)(&arg));
+    ret = pthread_create(&task_id, NULL,  doorphone_send_audio_task_fn, (void *)(&arg));
     if((ret < 0) || (task_id < 0))
     {
         egsip_log_debug("mydev test task create failed.\n");
     }
 
-    ret = pthread_create(&task_id, NULL,  mydev_recv_media_task_fn, (void *)(&arg));
+    ret = pthread_create(&task_id, NULL,  doorphone_recv_media_task_fn, (void *)(&arg));
     if((ret < 0) || (task_id < 0))
     {
         egsip_log_debug("mydev test task create failed.\n");
@@ -1275,29 +1277,29 @@ int start_mydev_test_doorphone()
 void init_doorphone()
 {
 	// 设置服务器请求回调函数表
-	g_doorphone_status_cb = mydev_status_callback;
+	g_doorphone_status_cb = doorphone_status_callback;
     memset(&g_doorphone_srv_req_cb_tbl, 0, sizeof(g_doorphone_srv_req_cb_tbl));
-    g_doorphone_srv_req_cb_tbl.called_cb             = mydev_called_cb;
-    g_doorphone_srv_req_cb_tbl.call_answered_cb      = mydev_call_answered_cb;
-    g_doorphone_srv_req_cb_tbl.call_stopped_cb       = mydev_call_stopped_cb;
-    g_doorphone_srv_req_cb_tbl.stream_started_cb     = mydev_stream_started_cb;
-    g_doorphone_srv_req_cb_tbl.load_certificate_cb   = mydev_load_certificate_cb;
-    g_doorphone_srv_req_cb_tbl.read_certificate_cb   = mydev_read_certificate_cb;
-    g_doorphone_srv_req_cb_tbl.delete_certificate_cb = mydev_delete_certificate_cb;
-    g_doorphone_srv_req_cb_tbl.door_open_cb          = mydev_acs_door_open_cb;
-    g_doorphone_srv_req_cb_tbl.get_door_param_cb     = mydev_get_door_param_cb;
-    g_doorphone_srv_req_cb_tbl.set_door_param_cb     = mydev_set_door_param_cb;
-    g_doorphone_srv_req_cb_tbl.device_upgrade_cb     = mydev_device_upgrade_cb;
-    g_doorphone_srv_req_cb_tbl.set_pic_storage_cb    = mydev_set_pic_storage_cb;
-    //g_doorphone_srv_req_cb_tbl.get_pic_storage_cb    = mydev_get_pic_storage_cb;
+    g_doorphone_srv_req_cb_tbl.called_cb             = doorphone_called_cb;
+    g_doorphone_srv_req_cb_tbl.call_answered_cb      = doorphone_call_answered_cb;
+    g_doorphone_srv_req_cb_tbl.call_stopped_cb       = doorphone_call_stopped_cb;
+    g_doorphone_srv_req_cb_tbl.stream_started_cb     = doorphone_stream_started_cb;
+    g_doorphone_srv_req_cb_tbl.load_certificate_cb   = doorphone_load_certificate_cb;
+    g_doorphone_srv_req_cb_tbl.read_certificate_cb   = doorphone_read_certificate_cb;
+    g_doorphone_srv_req_cb_tbl.delete_certificate_cb = doorphone_delete_certificate_cb;
+    g_doorphone_srv_req_cb_tbl.door_open_cb          = doorphone_acs_door_open_cb;
+    g_doorphone_srv_req_cb_tbl.get_door_param_cb     = doorphone_get_door_param_cb;
+    g_doorphone_srv_req_cb_tbl.set_door_param_cb     = doorphone_set_door_param_cb;
+    g_doorphone_srv_req_cb_tbl.device_upgrade_cb     = doorphone_device_upgrade_cb;
+    g_doorphone_srv_req_cb_tbl.set_pic_storage_cb    = doorphone_set_pic_storage_cb;
+    //g_doorphone_srv_req_cb_tbl.get_pic_storage_cb    = doorphone_get_pic_storage_cb;
 
     memset(&mydev_door_pa, 0, sizeof(mydev_door_pa));
     memset(mydev_cert_pa, 0, sizeof(mydev_cert_pa));
-    memset(mydev_status, 0, sizeof(egsip_dev_satus)*MAX_CERT);
+    memset(mydev_status, 0, sizeof(egsip_doorphone_dev_satus)*MAX_CERT);
 
     int i = 0;
-    parameters_info dev_para;
-    memset(&dev_para, 0 , sizeof(parameters_info));
+    doorphone_parameters_info dev_para;
+    memset(&dev_para, 0 , sizeof(doorphone_parameters_info));
 
     for(i = 0; i<MAX_CERT ; i++)
     {
@@ -1316,7 +1318,7 @@ void init_doorphone()
     {
         if(dev_para.cert_pa[i].using)
         {
-            memcpy(&(mydev_cert_pa[i]), &(dev_para.cert_pa[i]), sizeof(egsip_cert_param));
+            memcpy(&(mydev_cert_pa[i]), &(dev_para.cert_pa[i]), sizeof(egsip_doorphone_cert_param));
         }
     }
 
@@ -1331,30 +1333,30 @@ void mydev_init_doorphone()
 #if 1
     // 设置设备信息
     int ret = 0;
-    memset(&g_doorphonedev_info, 0, sizeof(g_doorphonedev_info));
-    ret = user_file_load_doorphone_device_config(&g_doorphonedev_info);
+    memset(&g_doorphone_dev_info, 0, sizeof(g_doorphone_dev_info));
+    ret = user_file_load_doorphone_device_config(&g_doorphone_dev_info);
     if(ret < 0)
     {
         egsip_log_error("load dev conf file failed, please check.\n");
         return;
     }
 
-    printf("file:%s function:%s, line: %d %s huzhe\n",__FILE__,__FUNCTION__,__LINE__, g_doorphonedev_info.fw_version);
+    printf("file:%s function:%s, line: %d %s huzhe\n",__FILE__,__FUNCTION__,__LINE__, g_doorphone_dev_info.fw_version);
     
 #else
     // 设置设备信息
-    memset(&g_doorphonedev_info, 0, sizeof(g_doorphonedev_info));
-    strcpy(g_doorphonedev_info.srv_addr, "10.101.70.51:5060");
-    strcpy(g_doorphonedev_info.local_addr, "172.24.11.15:5060");
-    g_doorphonedev_info.dev_type = EGSIP_TYPE_ENTRA_MACHINE;
-    g_doorphonedev_info.vendor_num = EGSIP_VENDOR_NUM_HIKVISION;
-    strcpy(g_doorphonedev_info.mac, "000001055353");
-    g_doorphonedev_info.call_dev_type = EGSIP_CALL_DEV_ENTRA_MACHINE;
-    strcpy(g_doorphonedev_info.addr_code, "77550003");//楼栋号
-    g_doorphonedev_info.dev_number = 1;
+    memset(&g_doorphone_dev_info, 0, sizeof(g_doorphone_dev_info));
+    strcpy(g_doorphone_dev_info.srv_addr, "10.101.70.51:5060");
+    strcpy(g_doorphone_dev_info.local_addr, "172.24.11.15:5060");
+    g_doorphone_dev_info.dev_type = EGSIP_TYPE_ENTRA_MACHINE;
+    g_doorphone_dev_info.vendor_num = EGSIP_VENDOR_NUM_HIKVISION;
+    strcpy(g_doorphone_dev_info.mac, "000001055353");
+    g_doorphone_dev_info.call_dev_type = EGSIP_CALL_DEV_ENTRA_MACHINE;
+    strcpy(g_doorphone_dev_info.addr_code, "77550003");//楼栋号
+    g_doorphone_dev_info.dev_number = 1;
     
-    g_doorphonedev_info.subdev_count = 6;
-    g_doorphonedev_info.subdev_info = g_subdev;
+    g_doorphone_dev_info.subdev_count = 6;
+    g_doorphone_dev_info.subdev_info = g_subdev;
 
     int i;
     for (i = 0; i < 6; i++)
@@ -1378,27 +1380,27 @@ void mydev_init_doorphone()
 
 //    // 设置服务器请求回调函数表
 //    memset(&g_doorphone_srv_req_cb_tbl, 0, sizeof(g_doorphone_srv_req_cb_tbl));
-//    g_doorphone_srv_req_cb_tbl.called_cb             = mydev_called_cb;
-//    g_doorphone_srv_req_cb_tbl.call_answered_cb      = mydev_call_answered_cb;
-//    g_doorphone_srv_req_cb_tbl.call_stopped_cb       = mydev_call_stopped_cb;
-//    g_doorphone_srv_req_cb_tbl.stream_started_cb     = mydev_stream_started_cb;
-//    g_doorphone_srv_req_cb_tbl.load_certificate_cb   = mydev_load_certificate_cb;
-//    g_doorphone_srv_req_cb_tbl.read_certificate_cb   = mydev_read_certificate_cb;
-//    g_doorphone_srv_req_cb_tbl.delete_certificate_cb = mydev_delete_certificate_cb;
-//    g_doorphone_srv_req_cb_tbl.door_open_cb          = mydev_acs_door_open_cb;
-//    g_doorphone_srv_req_cb_tbl.get_door_param_cb     = mydev_get_door_param_cb;
-//    g_doorphone_srv_req_cb_tbl.set_door_param_cb     = mydev_set_door_param_cb;
-//    g_doorphone_srv_req_cb_tbl.device_upgrade_cb     = mydev_device_upgrade_cb;
-//    g_doorphone_srv_req_cb_tbl.set_pic_storage_cb    = mydev_set_pic_storage_cb;
-//    //g_doorphone_srv_req_cb_tbl.get_pic_storage_cb    = mydev_get_pic_storage_cb;
+//    g_doorphone_srv_req_cb_tbl.called_cb             = doorphone_called_cb;
+//    g_doorphone_srv_req_cb_tbl.call_answered_cb      = doorphone_call_answered_cb;
+//    g_doorphone_srv_req_cb_tbl.call_stopped_cb       = doorphone_call_stopped_cb;
+//    g_doorphone_srv_req_cb_tbl.stream_started_cb     = doorphone_stream_started_cb;
+//    g_doorphone_srv_req_cb_tbl.load_certificate_cb   = doorphone_load_certificate_cb;
+//    g_doorphone_srv_req_cb_tbl.read_certificate_cb   = doorphone_read_certificate_cb;
+//    g_doorphone_srv_req_cb_tbl.delete_certificate_cb = doorphone_delete_certificate_cb;
+//    g_doorphone_srv_req_cb_tbl.door_open_cb          = doorphone_acs_door_open_cb;
+//    g_doorphone_srv_req_cb_tbl.get_door_param_cb     = doorphone_get_door_param_cb;
+//    g_doorphone_srv_req_cb_tbl.set_door_param_cb     = doorphone_set_door_param_cb;
+//    g_doorphone_srv_req_cb_tbl.device_upgrade_cb     = doorphone_device_upgrade_cb;
+//    g_doorphone_srv_req_cb_tbl.set_pic_storage_cb    = doorphone_set_pic_storage_cb;
+//    //g_doorphone_srv_req_cb_tbl.get_pic_storage_cb    = doorphone_get_pic_storage_cb;
 //
 //    memset(&mydev_door_pa, 0, sizeof(mydev_door_pa));
 //    memset(mydev_cert_pa, 0, sizeof(mydev_cert_pa));
-//    memset(mydev_status, 0, sizeof(egsip_dev_satus)*MAX_CERT);
+//    memset(mydev_status, 0, sizeof(egsip_doorphone_dev_satus)*MAX_CERT);
 //
 //    int i = 0;
-//    parameters_info dev_para;
-//    memset(&dev_para, 0 , sizeof(parameters_info));
+//    doorphone_parameters_info dev_para;
+//    memset(&dev_para, 0 , sizeof(doorphone_parameters_info));
 //
 //    for(i = 0; i<MAX_CERT ; i++)
 //    {
@@ -1417,7 +1419,7 @@ void mydev_init_doorphone()
 //    {
 //        if(dev_para.cert_pa[i].using)
 //        {
-//            memcpy(&(mydev_cert_pa[i]), &(dev_para.cert_pa[i]), sizeof(egsip_cert_param));
+//            memcpy(&(mydev_cert_pa[i]), &(dev_para.cert_pa[i]), sizeof(egsip_doorphone_cert_param));
 //        }
 //    }
 //
@@ -1425,10 +1427,10 @@ void mydev_init_doorphone()
 //
 //    mydev_test_start = 1;
 	init_doorphone();
-    start_mydev_test_doorphone();
+    start_doorphone_test();
 }
 
-int mydev_del_doorphone()
+int doorphone_del_doorphone()
 {
     mydev_test_start = 0;
     return 0;

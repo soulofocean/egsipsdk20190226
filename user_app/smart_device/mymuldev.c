@@ -10,7 +10,8 @@
 #include<unistd.h>
 #include <sys/wait.h>
 #include "doorphone_dev.h"
-#include "doorphone_file_parse.h"
+#include "camera_dev.h"
+//#include "doorphone_file_parse.h"
 static struct list_head s_mydev_cert_list_head;
 static struct list_head s_mydev_dev_list_head;
 mydev_json_obj s_device_config_obj = NULL;  //设备用户配置信息
@@ -798,7 +799,7 @@ int processUploadInfo(user_dev_info *user_dev,char * input_req_cmd)
 		{
 			//alarm [EventType] [SubdevType] [DESC] [ImgUrl] [UsetID] [UserType]
 			egsip_log_info("Parse devtype:[%d] cmd\n",user_dev->dev_info.dev_type);
-			command_info  mydev_command_info;
+			doorphone_command_info  mydev_command_info;
 			memset(&mydev_command_info, 0 ,sizeof(mydev_command_info));
 			mydev_command_info.alarm_count = 1;
 			mydev_command_info.alarm_info[0].event_type = atoi(arg_arr[1]);
@@ -870,6 +871,8 @@ int mydev_init_by_type(EGSIP_DEV_TYPE dev_type)
 			}
 			case EGSIP_TYPE_CAMERA:
 			{
+				init_camera();
+				break;
 			}
 			default:
 			{
@@ -897,6 +900,14 @@ static int mydev_create_single(user_dev_info *user_dev)
             dev_req_if_len = sizeof(g_doorphone_req_if_tbl);
             break;
         }
+		case EGSIP_TYPE_CAMERA:
+		{
+			user_dev->status_cb_func = (void *)g_camera_status_cb;
+            user_dev->srv_req_cb_tbl = (void *)&g_camera_srv_req_cb_tbl;
+            user_dev->dev_req_if_tbl = (void *)&g_camera_req_if_tbl;
+            srv_req_cb_len = sizeof(g_camera_srv_req_cb_tbl);
+            dev_req_if_len = sizeof(g_camera_req_if_tbl);
+		}
         default :
         {
 			egsip_log_error("Not support devType[%d]\n",user_dev->dev_info.dev_type);
@@ -1013,7 +1024,7 @@ int my_dev_single_init(EGSIP_DEV_TYPE dev_type, int dev_offset)
 	Child_process_loop(user_dev,dev_offset);
 	if(user_dev->dev_info.dev_type == EGSIP_TYPE_ENTRA_MACHINE)
 	{
-		mydev_del_doorphone();
+		doorphone_del_doorphone();
 	}
 	//sleep(1);//等1秒再结束，为了防止主进程无限等待下去，待验证是否有效
 	egsip_log_info("[id:%s]DelDispatchMQ ret = %d\n",user_dev->dev_info.mac,ret);

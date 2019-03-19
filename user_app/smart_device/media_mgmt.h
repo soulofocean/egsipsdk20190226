@@ -150,7 +150,7 @@ typedef struct _STREAM_SESSION_PARAM
 #if 1
 #define PCAP_VIDEO_FILE "doorphone.pcap"
 #define PCAP_AUDIO_FILE "doorphone.pcap"
-
+#define PCAP_FILE "hk.pcap"
 #define BUFSIZE 4096
 
 typedef int             bpf_int32;

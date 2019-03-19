@@ -9,7 +9,7 @@
 #define DOORPHONE_COMMAND_CONFIG_FILE_NAME    "./command_config_doorphone"
 #define DOORPHONE_PARAM_FILE_NAME             "./parameters_file_doorphone"
 
-static int user_load_doorphone_alarm_config(command_info          *mydev_command_info, mydev_json_obj dev_item_obj)
+static int user_load_doorphone_alarm_config(doorphone_command_info          *mydev_command_info, mydev_json_obj dev_item_obj)
 {
     int loop = 0;
     int valid_subdev = 0;
@@ -89,7 +89,7 @@ static int user_load_doorphone_alarm_config(command_info          *mydev_command
     return 0;
 }
 
-int user_file_load_doorphone_command_config(command_info          *mydev_command_info)
+int user_file_load_doorphone_command_config(doorphone_command_info          *mydev_command_info)
 {
     int ret = -1;
     int index = 0;
@@ -280,7 +280,7 @@ int user_file_load_doorphone_device_config(egsip_dev_info *mydev_info)
                 subdev_array_obj = mydev_json_get_object(dev_item_obj, "subdev");
                 if(NULL != subdev_array_obj)
                 {
-                    //mydev_json_get_array_size(subdev_array_obj, &g_doorphonedev_info.subdev_count);
+                    //mydev_json_get_array_size(subdev_array_obj, &g_doorphone_dev_info.subdev_count);
                     if(mydev_info->subdev_count>0)
                     {
                         mydev_info->subdev_info = (egsip_subdev_info *)malloc(sizeof(egsip_subdev_info)*mydev_info->subdev_count);
@@ -331,7 +331,7 @@ int user_file_load_doorphone_device_config(egsip_dev_info *mydev_info)
     return ret;
 }
 
-int user_file_load_doorphone_parameters(parameters_info* dev_para)
+int user_file_load_doorphone_parameters(doorphone_parameters_info* dev_para)
 {
     int ret = -1;
     int index = 0;
@@ -455,7 +455,7 @@ int user_file_load_doorphone_parameters(parameters_info* dev_para)
     return ret;
 }
 
-int user_file_store_doorphone_parameters(parameters_info* dev_para)
+int user_file_store_doorphone_parameters(doorphone_parameters_info* dev_para)
 {
     FILE *fd_conf = NULL;                   //文件描述符
     char *param_string = NULL;
@@ -549,7 +549,7 @@ int user_file_store_doorphone_parameters(parameters_info* dev_para)
     return ret;
 }
 
-int user_file_del_doorphone_parameters(parameters_info* dev_para)
+int user_file_del_doorphone_parameters(doorphone_parameters_info* dev_para)
 {
     FILE *fd_conf = NULL;                   //文件描述符
     char *param_string = NULL;

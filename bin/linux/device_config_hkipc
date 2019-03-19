@@ -1,10 +1,10 @@
 [{
 	"server_addr": "10.101.70.54:5060",
-	"local_addr": "172.24.11.239:5060",
+	"local_addr": "172.24.11.239:0",
 	"dev_type": 2001,
 	"call_dev_type": 0,
 	"vendor_num": 1001,
-	"mac": "000001055353",
+	"mac": "201903180001",
 	"addr_code": "0",
 	"dev_type_desc": "hkipc",
 	"vendor_name": "HK",
@@ -15,7 +15,7 @@
 	"subdev_info": 0,
 	"subdev": [{
 		"subdev_type": 3001,
-		"mac": "000001055353",
+		"mac": "201903180001",
 		"subdev_num": 1,
 		"name": "HD_IPC0",
 		"vendor_name": "hk",
