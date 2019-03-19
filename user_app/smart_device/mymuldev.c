@@ -891,10 +891,10 @@ static int mydev_create_single(user_dev_info *user_dev)
         case EGSIP_TYPE_ENTRA_MACHINE:
         {
             user_dev->status_cb_func = (void *)g_doorphone_status_cb;
-            user_dev->srv_req_cb_tbl = (void *)&g_srv_req_cb_tbl;
-            user_dev->dev_req_if_tbl = (void *)&g_mydev_req_if_tbl;
-            srv_req_cb_len = sizeof(g_srv_req_cb_tbl);
-            dev_req_if_len = sizeof(g_mydev_req_if_tbl);
+            user_dev->srv_req_cb_tbl = (void *)&g_doorphone_srv_req_cb_tbl;
+            user_dev->dev_req_if_tbl = (void *)&g_doorphone_req_if_tbl;
+            srv_req_cb_len = sizeof(g_doorphone_srv_req_cb_tbl);
+            dev_req_if_len = sizeof(g_doorphone_req_if_tbl);
             break;
         }
         default :
@@ -1013,7 +1013,7 @@ int my_dev_single_init(EGSIP_DEV_TYPE dev_type, int dev_offset)
 	Child_process_loop(user_dev,dev_offset);
 	if(user_dev->dev_info.dev_type == EGSIP_TYPE_ENTRA_MACHINE)
 	{
-		mydev_del();
+		mydev_del_doorphone();
 	}
 	//sleep(1);//等1秒再结束，为了防止主进程无限等待下去，待验证是否有效
 	egsip_log_info("[id:%s]DelDispatchMQ ret = %d\n",user_dev->dev_info.mac,ret);

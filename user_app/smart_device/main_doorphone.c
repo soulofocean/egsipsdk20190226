@@ -35,11 +35,11 @@ int main_doorphones(int argc, char *argv[])
     }
 
     // 初始化设备信息
-    mydev_init();
+    mydev_init_doorphone();
 
     // 创建设备
-    g_mydev_handle = -1;
-    ret = egsip_dev_create(&g_mydev_info, mydev_status_callback, &g_mydev_handle);
+    g_doorphone_dev_handle = -1;
+    ret = egsip_dev_create(&g_doorphonedev_info, mydev_status_callback, &g_doorphone_dev_handle);
     if(ret != EGSIP_RET_SUCCESS)
     {
         egsip_log_error("egsip_dev_create failed\n");
@@ -49,22 +49,22 @@ int main_doorphones(int argc, char *argv[])
 
     // 注册设备功能
     int get_len = 0;
-    ret = egsip_dev_func_register(g_mydev_handle, &g_srv_req_cb_tbl, sizeof(g_srv_req_cb_tbl), 
-                                    &g_mydev_req_if_tbl, sizeof(g_mydev_req_if_tbl), &get_len);
-    if(ret != EGSIP_RET_SUCCESS || get_len != sizeof(g_mydev_req_if_tbl))
+    ret = egsip_dev_func_register(g_doorphone_dev_handle, &g_doorphone_srv_req_cb_tbl, sizeof(g_doorphone_srv_req_cb_tbl), 
+                                    &g_doorphone_req_if_tbl, sizeof(g_doorphone_req_if_tbl), &get_len);
+    if(ret != EGSIP_RET_SUCCESS || get_len != sizeof(g_doorphone_req_if_tbl))
     {
         egsip_log_error("egsip_dev_func_register failed, ret(%d) get_len(%d).\n", ret, get_len);
-        egsip_dev_delete(g_mydev_handle);
+        egsip_dev_delete(g_doorphone_dev_handle);
         egsip_sdk_uninit();
         return -1;
     }
 
     // 启动设备
-    ret = egsip_dev_start(g_mydev_handle);
+    ret = egsip_dev_start(g_doorphone_dev_handle);
     if(ret != EGSIP_RET_SUCCESS)
     {
         egsip_log_error("egsip_dev_start failed\n");
-        egsip_dev_delete(g_mydev_handle);
+        egsip_dev_delete(g_doorphone_dev_handle);
         egsip_sdk_uninit();
         return -1;
     }
@@ -78,14 +78,14 @@ int main_doorphones(int argc, char *argv[])
         usleep(1000*1000);
     }
 
-    mydev_del();
+    mydev_del_doorphone();
 
     // 停止设备
-    egsip_dev_stop(g_mydev_handle);
+    egsip_dev_stop(g_doorphone_dev_handle);
 
     // 删除设备
-    egsip_dev_delete(g_mydev_handle);
-    g_mydev_handle = -1;
+    egsip_dev_delete(g_doorphone_dev_handle);
+    g_doorphone_dev_handle = -1;
 
     //释放SDK
     egsip_sdk_uninit();

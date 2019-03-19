@@ -5,11 +5,11 @@
 
 #include "doorphone_file_parse.h"
 
-#define TEST_DEVICE_CONFIG_FILE_NAME     "./device_config_doorphone"
-#define TEST_COMMAND_CONFIG_FILE_NAME    "./command_config_doorphone"
-#define TEST_PARAM_FILE_NAME             "./parameters_file_doorphone"
+#define DOORPHONE_DEVICE_CONFIG_FILE_NAME     "./device_config_doorphone"
+#define DOORPHONE_COMMAND_CONFIG_FILE_NAME    "./command_config_doorphone"
+#define DOORPHONE_PARAM_FILE_NAME             "./parameters_file_doorphone"
 
-static int user_load_alarm_config(command_info          *mydev_command_info, mydev_json_obj dev_item_obj)
+static int user_load_doorphone_alarm_config(command_info          *mydev_command_info, mydev_json_obj dev_item_obj)
 {
     int loop = 0;
     int valid_subdev = 0;
@@ -89,7 +89,7 @@ static int user_load_alarm_config(command_info          *mydev_command_info, myd
     return 0;
 }
 
-int user_file_load_command_config(command_info          *mydev_command_info)
+int user_file_load_doorphone_command_config(command_info          *mydev_command_info)
 {
     int ret = -1;
     int index = 0;
@@ -104,11 +104,11 @@ int user_file_load_command_config(command_info          *mydev_command_info)
     FILE *fd_conf = NULL;                   //配置文件描述符
 
     egsip_log_debug("load command config start.\n");
-    egsip_log_info("load command config file(%s).\n", TEST_COMMAND_CONFIG_FILE_NAME);
-    fd_conf = fopen(TEST_COMMAND_CONFIG_FILE_NAME,"r");
+    egsip_log_info("load command config file(%s).\n", DOORPHONE_COMMAND_CONFIG_FILE_NAME);
+    fd_conf = fopen(DOORPHONE_COMMAND_CONFIG_FILE_NAME,"r");
     if(NULL == fd_conf)
     {
-        egsip_log_info("no found device config file(%s), door will exit.\n", TEST_COMMAND_CONFIG_FILE_NAME);
+        egsip_log_info("no found device config file(%s), door will exit.\n", DOORPHONE_COMMAND_CONFIG_FILE_NAME);
         return ret;
     }
 
@@ -119,7 +119,7 @@ int user_file_load_command_config(command_info          *mydev_command_info)
     if(NULL == param_buff)
     {
         egsip_log_error("malloc failed, errno(%d):%s .\n", errno, strerror(errno));
-        egsip_log_info("parser command config file(%s) failed, exit.\n", TEST_COMMAND_CONFIG_FILE_NAME);
+        egsip_log_info("parser command config file(%s) failed, exit.\n", DOORPHONE_COMMAND_CONFIG_FILE_NAME);
         fclose(fd_conf);
         return ret;
     }
@@ -162,7 +162,7 @@ int user_file_load_command_config(command_info          *mydev_command_info)
             }
             else if(mydev_command_info->alarm_count > 0)
             {
-                user_load_alarm_config(mydev_command_info, dev_item_obj);
+                user_load_doorphone_alarm_config(mydev_command_info, dev_item_obj);
             }
             valid_info_cnt++;
             ret = 0;
@@ -187,7 +187,7 @@ int user_file_load_command_config(command_info          *mydev_command_info)
     return ret;
 }
 
-int user_file_load_device_config(egsip_dev_info *mydev_info)
+int user_file_load_doorphone_device_config(egsip_dev_info *mydev_info)
 {
     int ret = -1;
     int index = 0;
@@ -206,11 +206,11 @@ int user_file_load_device_config(egsip_dev_info *mydev_info)
     egsip_subdev_info *subdev_info;
 
     egsip_log_debug("load device config start.\n");
-    egsip_log_info("load device config file(%s).\n", TEST_DEVICE_CONFIG_FILE_NAME);
-    fd_conf = fopen(TEST_DEVICE_CONFIG_FILE_NAME,"r");
+    egsip_log_info("load device config file(%s).\n", DOORPHONE_DEVICE_CONFIG_FILE_NAME);
+    fd_conf = fopen(DOORPHONE_DEVICE_CONFIG_FILE_NAME,"r");
     if(NULL == fd_conf)
     {
-        egsip_log_info("no found device config file(%s), door will exit.\n", TEST_DEVICE_CONFIG_FILE_NAME);
+        egsip_log_info("no found device config file(%s), door will exit.\n", DOORPHONE_DEVICE_CONFIG_FILE_NAME);
         return ret;
     }
 
@@ -223,7 +223,7 @@ int user_file_load_device_config(egsip_dev_info *mydev_info)
         egsip_log_error("malloc  failed, errno(%d):%s .\n",
                     errno,
                     strerror(errno));
-        egsip_log_info("parser device config file(%s) failed, exit.\n", TEST_DEVICE_CONFIG_FILE_NAME);
+        egsip_log_info("parser device config file(%s) failed, exit.\n", DOORPHONE_DEVICE_CONFIG_FILE_NAME);
         fclose(fd_conf);
         return ret;
     }
@@ -280,7 +280,7 @@ int user_file_load_device_config(egsip_dev_info *mydev_info)
                 subdev_array_obj = mydev_json_get_object(dev_item_obj, "subdev");
                 if(NULL != subdev_array_obj)
                 {
-                    //mydev_json_get_array_size(subdev_array_obj, &g_mydev_info.subdev_count);
+                    //mydev_json_get_array_size(subdev_array_obj, &g_doorphonedev_info.subdev_count);
                     if(mydev_info->subdev_count>0)
                     {
                         mydev_info->subdev_info = (egsip_subdev_info *)malloc(sizeof(egsip_subdev_info)*mydev_info->subdev_count);
@@ -331,7 +331,7 @@ int user_file_load_device_config(egsip_dev_info *mydev_info)
     return ret;
 }
 
-int user_file_load_parameters(parameters_info* dev_para)
+int user_file_load_doorphone_parameters(parameters_info* dev_para)
 {
     int ret = -1;
     int index = 0;
@@ -344,11 +344,11 @@ int user_file_load_parameters(parameters_info* dev_para)
     FILE *fd_conf = NULL;                   //配置文件描述符
 
     egsip_log_debug("load device config start.\n");
-    egsip_log_info("load device config file(%s).\n", TEST_DEVICE_CONFIG_FILE_NAME);
-    fd_conf = fopen(TEST_DEVICE_CONFIG_FILE_NAME,"r");
+    egsip_log_info("load device config file(%s).\n", DOORPHONE_DEVICE_CONFIG_FILE_NAME);
+    fd_conf = fopen(DOORPHONE_DEVICE_CONFIG_FILE_NAME,"r");
     if(NULL == fd_conf)
     {
-        egsip_log_error("no found device parameter file(%s), door will exit.\n", TEST_DEVICE_CONFIG_FILE_NAME);
+        egsip_log_error("no found device parameter file(%s), door will exit.\n", DOORPHONE_DEVICE_CONFIG_FILE_NAME);
         return ret;
     }
 
@@ -358,7 +358,7 @@ int user_file_load_parameters(parameters_info* dev_para)
     param_buff = (char *)malloc(conf_file_size);
     if(NULL == param_buff)
     {
-        egsip_log_error("parser device v file(%s) failed, exit.\n", TEST_DEVICE_CONFIG_FILE_NAME);
+        egsip_log_error("parser device v file(%s) failed, exit.\n", DOORPHONE_DEVICE_CONFIG_FILE_NAME);
         fclose(fd_conf);
         return ret;
     }
@@ -455,7 +455,7 @@ int user_file_load_parameters(parameters_info* dev_para)
     return ret;
 }
 
-int user_file_store_parameters(parameters_info* dev_para)
+int user_file_store_doorphone_parameters(parameters_info* dev_para)
 {
     FILE *fd_conf = NULL;                   //文件描述符
     char *param_string = NULL;
@@ -465,9 +465,9 @@ int user_file_store_parameters(parameters_info* dev_para)
     int i = 0;
 
     egsip_log_debug("store parameters start.\n");
-    egsip_log_debug("store parameters file(%s).\n", TEST_PARAM_FILE_NAME);
+    egsip_log_debug("store parameters file(%s).\n", DOORPHONE_PARAM_FILE_NAME);
 
-    fd_conf = fopen(TEST_PARAM_FILE_NAME,"wb");
+    fd_conf = fopen(DOORPHONE_PARAM_FILE_NAME,"wb");
     if(NULL == fd_conf)
     {
         egsip_log_error("open boot load failed.\n");
@@ -549,7 +549,7 @@ int user_file_store_parameters(parameters_info* dev_para)
     return ret;
 }
 
-int user_file_del_parameters(parameters_info* dev_para)
+int user_file_del_doorphone_parameters(parameters_info* dev_para)
 {
     FILE *fd_conf = NULL;                   //文件描述符
     char *param_string = NULL;
@@ -559,9 +559,9 @@ int user_file_del_parameters(parameters_info* dev_para)
     char name_ext[64];
 
     egsip_log_debug("store parameters start.\n");
-    egsip_log_debug("store parameters file(%s).\n", TEST_PARAM_FILE_NAME);
+    egsip_log_debug("store parameters file(%s).\n", DOORPHONE_PARAM_FILE_NAME);
 
-    fd_conf = fopen(TEST_PARAM_FILE_NAME,"wb");
+    fd_conf = fopen(DOORPHONE_PARAM_FILE_NAME,"wb");
     if(NULL == fd_conf)
     {
         egsip_log_error("open boot load failed.\n");

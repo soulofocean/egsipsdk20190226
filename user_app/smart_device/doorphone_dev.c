@@ -39,7 +39,7 @@ void mydev_record_report_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
 EGSIP_RET_CODE  mydev_record_report(int handle, int sess_id, egsip_acs_record_type *record)
 {
     egsip_log_info("report info\n");
-    g_mydev_req_if_tbl.record_report_if(handle, sess_id, mydev_record_report_cb, record);
+    g_doorphone_req_if_tbl.record_report_if(handle, sess_id, mydev_record_report_cb, record);
 
     return 0;
 }
@@ -56,7 +56,7 @@ void mydev_call_report_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
 EGSIP_RET_CODE  mydev_call_report(int handle, int sess_id, egsip_intercom_record_report_info *record)
 {
     egsip_log_info("report info\n");
-    g_mydev_req_if_tbl.intercom_report_if(handle, sess_id, mydev_call_report_cb, record);
+    g_doorphone_req_if_tbl.intercom_report_if(handle, sess_id, mydev_call_report_cb, record);
 
     return 0;
 }
@@ -73,7 +73,7 @@ void mydev_lock_report_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
 EGSIP_RET_CODE  mydev_lock_report(int handle, int sess_id, egsip_intercom_unlock_record_report_info *record)
 {
     egsip_log_info("report info\n");
-    g_mydev_req_if_tbl.intercom_unlock_report_if(handle, sess_id, mydev_lock_report_cb, record);
+    g_doorphone_req_if_tbl.intercom_unlock_report_if(handle, sess_id, mydev_lock_report_cb, record);
 
     return 0;
 }
@@ -242,7 +242,7 @@ EGSIP_RET_CODE mydev_load_certificate_cb(int handle, egsip_dev_cb_certificate_pa
 
             dev_para.cert_param_en[i] = 1;
             memcpy(&(dev_para.cert_pa[i]), &mydev_cert_pa[i], sizeof(egsip_cert_param));
-            user_file_store_parameters(&dev_para);
+            user_file_store_doorphone_parameters(&dev_para);
             break;
         }
     }
@@ -282,7 +282,7 @@ EGSIP_RET_CODE mydev_read_certificate_cb(int handle, int credence_type, char *cr
         else
         {
             dev_para.cert_param_en[i] = 1;
-            user_file_load_parameters(&dev_para);
+            user_file_load_doorphone_parameters(&dev_para);
             memcpy(dev_param, &(dev_para.cert_pa[i].cert_param), sizeof(egsip_dev_cb_certificate_param));
         }
     }
@@ -323,7 +323,7 @@ EGSIP_RET_CODE mydev_delete_certificate_cb(int handle, int credence_type, char *
              (memcmp(credence_no,mydev_cert_pa[i].cert_param.credence_no,strlen(credence_no)) == 0))
         {
             dev_para.cert_param_en[i] = 1;
-            user_file_del_parameters(&dev_para);
+            user_file_del_doorphone_parameters(&dev_para);
             memset(&(mydev_cert_pa[i]), 0,  sizeof(egsip_cert_param));
             break;
         }
@@ -421,7 +421,7 @@ EGSIP_RET_CODE mydev_set_pic_storage_cb(int handle, int sess_id, char *http_url)
 
             dev_para.pic_url_en = 1;
             memcpy(&(dev_para.pic_url), http_url, sizeof(dev_para.pic_url_en));
-            user_file_store_parameters(&dev_para);
+            user_file_store_doorphone_parameters(&dev_para);
             break;
         }
     }
@@ -445,7 +445,7 @@ EGSIP_RET_CODE mydev_get_pic_storage_cb(int handle, int sess_id, char *http_url)
         else
         {
             dev_para.pic_url_en = 1;
-            user_file_load_parameters(&dev_para);
+            user_file_load_doorphone_parameters(&dev_para);
             memcpy(http_url, &(dev_para.pic_url), sizeof(dev_para.pic_url));
         }
     }
@@ -467,7 +467,7 @@ EGSIP_RET_CODE mydev_get_door_param_cb(int handle, int sess_id, egsip_door_param
     memset(&dev_para, 0 , sizeof(parameters_info));
 
     dev_para.door_param_en = 1;
-    user_file_load_parameters(&dev_para);
+    user_file_load_doorphone_parameters(&dev_para);
     memcpy(door, &(dev_para.door_pa), sizeof(dev_para.door_pa));
 
     egsip_log_debug("handle:%d sess_id:%d open_durationl:%d alarm_timeout:%d ntp_server:%d\n",
@@ -492,7 +492,7 @@ EGSIP_RET_CODE mydev_set_door_param_cb(int handle, int sess_id, egsip_door_param
 
     dev_para.door_param_en = 1;
     memcpy(&(dev_para.door_pa), door, sizeof(dev_para.door_pa));
-    user_file_store_parameters(&dev_para);
+    user_file_store_doorphone_parameters(&dev_para);
     
     return EGSIP_RET_SUCCESS;
 }
@@ -528,12 +528,12 @@ int mydev_alarm_report(char *arg)
     int loop = 0;
     command_info  mydev_command_info;
     memset(&mydev_command_info, 0 ,sizeof(mydev_command_info));
-    user_file_load_command_config(&mydev_command_info);
+    user_file_load_doorphone_command_config(&mydev_command_info);
 
     for(loop=0; loop<mydev_command_info.alarm_count; loop++)
     {
        egsip_log_info("report(%d) time =[%s].\n", loop,mydev_command_info.alarm_info[loop].event_time);
-        g_mydev_req_if_tbl.acs_alarm_report_if(mydev_status[0].handle, (mydev_status[0].sess_id+7+loop), 
+        g_doorphone_req_if_tbl.acs_alarm_report_if(mydev_status[0].handle, (mydev_status[0].sess_id+7+loop), 
                                             mydev_alarm_report_res_cb, &(mydev_command_info.alarm_info[loop]));
     }
     return 0;
@@ -544,7 +544,7 @@ int doorphone_alarm_report(command_info *mydev_command_info)
 	for(loop=0; loop<mydev_command_info->alarm_count; loop++)
     {
        egsip_log_info("report(%d) time =[%s].\n", loop,mydev_command_info->alarm_info[loop].event_time);
-        g_mydev_req_if_tbl.acs_alarm_report_if(mydev_status[0].handle, (mydev_status[0].sess_id+7+loop), 
+        g_doorphone_req_if_tbl.acs_alarm_report_if(mydev_status[0].handle, (mydev_status[0].sess_id+7+loop), 
                                             mydev_alarm_report_res_cb, &(mydev_command_info->alarm_info[loop]));
 		egsip_log_info("report(%d) complete.\n",loop);
     }
@@ -588,7 +588,7 @@ int mydev_call_user(char *arg)
         }
     }
 
-    mydev_status[dev_num].handle = g_mydev_handle;
+    mydev_status[dev_num].handle = g_doorphone_dev_handle;
     mydev_status[dev_num].sess_id = sess_id;
     mydev_status[dev_num].using = 1;
     mydev_status[dev_num].dev_call = 1;
@@ -606,14 +606,14 @@ int mydev_call_user(char *arg)
         mydev_status[dev_num].call_info.other_addr.dev_number = 1;
     }
 
-    ip_len = strstr(g_mydev_info.local_addr, ":") - g_mydev_info.local_addr;
+    ip_len = strstr(g_doorphonedev_info.local_addr, ":") - g_doorphonedev_info.local_addr;
     if(ip_len < 16)
     {
-        strncpy(local_ip, g_mydev_info.local_addr, ip_len);
+        strncpy(local_ip, g_doorphonedev_info.local_addr, ip_len);
     }
     else
     {
-        egsip_log_error("get local ip from (%s) failed\n", g_mydev_info.local_addr);
+        egsip_log_error("get local ip from (%s) failed\n", g_doorphonedev_info.local_addr);
     }
 
     mydev_status[dev_num].call_info.caller_recv_audio.enable = 1;
@@ -626,7 +626,7 @@ int mydev_call_user(char *arg)
     mydev_status[dev_num].call_info.caller_recv_video.recv_port = UDP_BASE_PORT+2;
     mydev_status[dev_num].call_info.caller_recv_video.format = video_format;
 
-    g_mydev_req_if_tbl.call_if(mydev_status[dev_num].handle, mydev_status[dev_num].sess_id, mydev_call_res_cb, &(mydev_status[dev_num].call_info));
+    g_doorphone_req_if_tbl.call_if(mydev_status[dev_num].handle, mydev_status[dev_num].sess_id, mydev_call_res_cb, &(mydev_status[dev_num].call_info));
 
     return 0;
 }
@@ -654,7 +654,7 @@ int mydev_stop_call_user(char *arg)
     {
         if(mydev_status[i].dev_call == 1)
         {
-            g_mydev_req_if_tbl.stop_call_if(mydev_status[i].handle, mydev_status[i].sess_id, mydev_stop_call_res_cb);
+            g_doorphone_req_if_tbl.stop_call_if(mydev_status[i].handle, mydev_status[i].sess_id, mydev_stop_call_res_cb);
 
             char *url_pic = "jpge/test.jpg";
             char *invite_time = "2019-02-01 08:50:32";
@@ -706,12 +706,12 @@ int mydev_call_lift(char *arg)
     }
 
     int dir = atoi(arg);
-    mydev_status[dev_num].handle = g_mydev_handle;
+    mydev_status[dev_num].handle = g_doorphone_dev_handle;
     mydev_status[dev_num].sess_id = sess_id;
     mydev_status[dev_num].using = 1;
     mydev_status[dev_num].dev_call = 1;
 
-    g_mydev_req_if_tbl.elev_control_if(mydev_status[dev_num].handle, mydev_status[dev_num].sess_id, mydev_call_lift_cb, dir);
+    g_doorphone_req_if_tbl.elev_control_if(mydev_status[dev_num].handle, mydev_status[dev_num].sess_id, mydev_call_lift_cb, dir);
 
     return 0;
 }
@@ -754,7 +754,7 @@ int mydev_open_door(void *arg)
             record.pass_type   = abs(rand())%2;
             memcpy(record.credence_no, arg, sizeof(record.credence_no));
 
-            mydev_record_report(g_mydev_handle, sess_id, &record);
+            mydev_record_report(g_doorphone_dev_handle, sess_id, &record);
 
             break;
         }
@@ -1240,7 +1240,7 @@ void *mydev_recv_media_task_fn(void *arg)
     return 0;
 }
 
-int start_mydev_test()
+int start_mydev_test_doorphone()
 {
     int ret = -1;
     int arg = 0;
@@ -1276,20 +1276,20 @@ void init_doorphone()
 {
 	// 设置服务器请求回调函数表
 	g_doorphone_status_cb = mydev_status_callback;
-    memset(&g_srv_req_cb_tbl, 0, sizeof(g_srv_req_cb_tbl));
-    g_srv_req_cb_tbl.called_cb             = mydev_called_cb;
-    g_srv_req_cb_tbl.call_answered_cb      = mydev_call_answered_cb;
-    g_srv_req_cb_tbl.call_stopped_cb       = mydev_call_stopped_cb;
-    g_srv_req_cb_tbl.stream_started_cb     = mydev_stream_started_cb;
-    g_srv_req_cb_tbl.load_certificate_cb   = mydev_load_certificate_cb;
-    g_srv_req_cb_tbl.read_certificate_cb   = mydev_read_certificate_cb;
-    g_srv_req_cb_tbl.delete_certificate_cb = mydev_delete_certificate_cb;
-    g_srv_req_cb_tbl.door_open_cb          = mydev_acs_door_open_cb;
-    g_srv_req_cb_tbl.get_door_param_cb     = mydev_get_door_param_cb;
-    g_srv_req_cb_tbl.set_door_param_cb     = mydev_set_door_param_cb;
-    g_srv_req_cb_tbl.device_upgrade_cb     = mydev_device_upgrade_cb;
-    g_srv_req_cb_tbl.set_pic_storage_cb    = mydev_set_pic_storage_cb;
-    //g_srv_req_cb_tbl.get_pic_storage_cb    = mydev_get_pic_storage_cb;
+    memset(&g_doorphone_srv_req_cb_tbl, 0, sizeof(g_doorphone_srv_req_cb_tbl));
+    g_doorphone_srv_req_cb_tbl.called_cb             = mydev_called_cb;
+    g_doorphone_srv_req_cb_tbl.call_answered_cb      = mydev_call_answered_cb;
+    g_doorphone_srv_req_cb_tbl.call_stopped_cb       = mydev_call_stopped_cb;
+    g_doorphone_srv_req_cb_tbl.stream_started_cb     = mydev_stream_started_cb;
+    g_doorphone_srv_req_cb_tbl.load_certificate_cb   = mydev_load_certificate_cb;
+    g_doorphone_srv_req_cb_tbl.read_certificate_cb   = mydev_read_certificate_cb;
+    g_doorphone_srv_req_cb_tbl.delete_certificate_cb = mydev_delete_certificate_cb;
+    g_doorphone_srv_req_cb_tbl.door_open_cb          = mydev_acs_door_open_cb;
+    g_doorphone_srv_req_cb_tbl.get_door_param_cb     = mydev_get_door_param_cb;
+    g_doorphone_srv_req_cb_tbl.set_door_param_cb     = mydev_set_door_param_cb;
+    g_doorphone_srv_req_cb_tbl.device_upgrade_cb     = mydev_device_upgrade_cb;
+    g_doorphone_srv_req_cb_tbl.set_pic_storage_cb    = mydev_set_pic_storage_cb;
+    //g_doorphone_srv_req_cb_tbl.get_pic_storage_cb    = mydev_get_pic_storage_cb;
 
     memset(&mydev_door_pa, 0, sizeof(mydev_door_pa));
     memset(mydev_cert_pa, 0, sizeof(mydev_cert_pa));
@@ -1305,7 +1305,7 @@ void init_doorphone()
     }
     dev_para.door_param_en = 1;
     dev_para.pic_url_en    = 1;
-    user_file_load_parameters(&dev_para);
+    user_file_load_doorphone_parameters(&dev_para);
 
     for(i = 0; i<5 ; i++)
     {
@@ -1325,36 +1325,36 @@ void init_doorphone()
     mydev_test_start = 1;
 }
 // 设备初始化函数
-void mydev_init()
+void mydev_init_doorphone()
 {
-    egsip_log_debug("mydev_init\n");
+    egsip_log_debug("mydev_init_doorphone\n");
 #if 1
     // 设置设备信息
     int ret = 0;
-    memset(&g_mydev_info, 0, sizeof(g_mydev_info));
-    ret = user_file_load_device_config(&g_mydev_info);
+    memset(&g_doorphonedev_info, 0, sizeof(g_doorphonedev_info));
+    ret = user_file_load_doorphone_device_config(&g_doorphonedev_info);
     if(ret < 0)
     {
         egsip_log_error("load dev conf file failed, please check.\n");
         return;
     }
 
-    printf("file:%s function:%s, line: %d %s huzhe\n",__FILE__,__FUNCTION__,__LINE__, g_mydev_info.fw_version);
+    printf("file:%s function:%s, line: %d %s huzhe\n",__FILE__,__FUNCTION__,__LINE__, g_doorphonedev_info.fw_version);
     
 #else
     // 设置设备信息
-    memset(&g_mydev_info, 0, sizeof(g_mydev_info));
-    strcpy(g_mydev_info.srv_addr, "10.101.70.51:5060");
-    strcpy(g_mydev_info.local_addr, "172.24.11.15:5060");
-    g_mydev_info.dev_type = EGSIP_TYPE_ENTRA_MACHINE;
-    g_mydev_info.vendor_num = EGSIP_VENDOR_NUM_HIKVISION;
-    strcpy(g_mydev_info.mac, "000001055353");
-    g_mydev_info.call_dev_type = EGSIP_CALL_DEV_ENTRA_MACHINE;
-    strcpy(g_mydev_info.addr_code, "77550003");//楼栋号
-    g_mydev_info.dev_number = 1;
+    memset(&g_doorphonedev_info, 0, sizeof(g_doorphonedev_info));
+    strcpy(g_doorphonedev_info.srv_addr, "10.101.70.51:5060");
+    strcpy(g_doorphonedev_info.local_addr, "172.24.11.15:5060");
+    g_doorphonedev_info.dev_type = EGSIP_TYPE_ENTRA_MACHINE;
+    g_doorphonedev_info.vendor_num = EGSIP_VENDOR_NUM_HIKVISION;
+    strcpy(g_doorphonedev_info.mac, "000001055353");
+    g_doorphonedev_info.call_dev_type = EGSIP_CALL_DEV_ENTRA_MACHINE;
+    strcpy(g_doorphonedev_info.addr_code, "77550003");//楼栋号
+    g_doorphonedev_info.dev_number = 1;
     
-    g_mydev_info.subdev_count = 6;
-    g_mydev_info.subdev_info = g_subdev;
+    g_doorphonedev_info.subdev_count = 6;
+    g_doorphonedev_info.subdev_info = g_subdev;
 
     int i;
     for (i = 0; i < 6; i++)
@@ -1377,20 +1377,20 @@ void mydev_init()
 #endif
 
 //    // 设置服务器请求回调函数表
-//    memset(&g_srv_req_cb_tbl, 0, sizeof(g_srv_req_cb_tbl));
-//    g_srv_req_cb_tbl.called_cb             = mydev_called_cb;
-//    g_srv_req_cb_tbl.call_answered_cb      = mydev_call_answered_cb;
-//    g_srv_req_cb_tbl.call_stopped_cb       = mydev_call_stopped_cb;
-//    g_srv_req_cb_tbl.stream_started_cb     = mydev_stream_started_cb;
-//    g_srv_req_cb_tbl.load_certificate_cb   = mydev_load_certificate_cb;
-//    g_srv_req_cb_tbl.read_certificate_cb   = mydev_read_certificate_cb;
-//    g_srv_req_cb_tbl.delete_certificate_cb = mydev_delete_certificate_cb;
-//    g_srv_req_cb_tbl.door_open_cb          = mydev_acs_door_open_cb;
-//    g_srv_req_cb_tbl.get_door_param_cb     = mydev_get_door_param_cb;
-//    g_srv_req_cb_tbl.set_door_param_cb     = mydev_set_door_param_cb;
-//    g_srv_req_cb_tbl.device_upgrade_cb     = mydev_device_upgrade_cb;
-//    g_srv_req_cb_tbl.set_pic_storage_cb    = mydev_set_pic_storage_cb;
-//    //g_srv_req_cb_tbl.get_pic_storage_cb    = mydev_get_pic_storage_cb;
+//    memset(&g_doorphone_srv_req_cb_tbl, 0, sizeof(g_doorphone_srv_req_cb_tbl));
+//    g_doorphone_srv_req_cb_tbl.called_cb             = mydev_called_cb;
+//    g_doorphone_srv_req_cb_tbl.call_answered_cb      = mydev_call_answered_cb;
+//    g_doorphone_srv_req_cb_tbl.call_stopped_cb       = mydev_call_stopped_cb;
+//    g_doorphone_srv_req_cb_tbl.stream_started_cb     = mydev_stream_started_cb;
+//    g_doorphone_srv_req_cb_tbl.load_certificate_cb   = mydev_load_certificate_cb;
+//    g_doorphone_srv_req_cb_tbl.read_certificate_cb   = mydev_read_certificate_cb;
+//    g_doorphone_srv_req_cb_tbl.delete_certificate_cb = mydev_delete_certificate_cb;
+//    g_doorphone_srv_req_cb_tbl.door_open_cb          = mydev_acs_door_open_cb;
+//    g_doorphone_srv_req_cb_tbl.get_door_param_cb     = mydev_get_door_param_cb;
+//    g_doorphone_srv_req_cb_tbl.set_door_param_cb     = mydev_set_door_param_cb;
+//    g_doorphone_srv_req_cb_tbl.device_upgrade_cb     = mydev_device_upgrade_cb;
+//    g_doorphone_srv_req_cb_tbl.set_pic_storage_cb    = mydev_set_pic_storage_cb;
+//    //g_doorphone_srv_req_cb_tbl.get_pic_storage_cb    = mydev_get_pic_storage_cb;
 //
 //    memset(&mydev_door_pa, 0, sizeof(mydev_door_pa));
 //    memset(mydev_cert_pa, 0, sizeof(mydev_cert_pa));
@@ -1406,7 +1406,7 @@ void mydev_init()
 //    }
 //    dev_para.door_param_en = 1;
 //    dev_para.pic_url_en    = 1;
-//    user_file_load_parameters(&dev_para);
+//    user_file_load_doorphone_parameters(&dev_para);
 //
 //    for(i = 0; i<5 ; i++)
 //    {
@@ -1425,10 +1425,10 @@ void mydev_init()
 //
 //    mydev_test_start = 1;
 	init_doorphone();
-    start_mydev_test();
+    start_mydev_test_doorphone();
 }
 
-int mydev_del()
+int mydev_del_doorphone()
 {
     mydev_test_start = 0;
     return 0;
