@@ -11,8 +11,8 @@ typedef struct _command_info
     egsip_dev_alarm_info alarm_info[MAX_COMMAND];
 }command_info;
 
-int user_file_load_command_config(command_info          *mydev_command_info);
-int user_file_load_device_config();
-int user_file_load_parameters(char *pic_url);
-int user_file_store_parameters(char *pic_url);
+int user_file_load_camera_command_config(command_info          *mydev_command_info);
+int user_file_load_camera_device_config();
+int user_file_load_camera_parameters(char *pic_url);
+int user_file_store_camera_parameters(char *pic_url);
 #endif

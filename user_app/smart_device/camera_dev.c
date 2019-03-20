@@ -173,7 +173,7 @@ EGSIP_RET_CODE camera_set_pic_storage_cb(int handle, int sess_id, char *http_url
         if(mydev_status[i].handle == handle)
         {
             memcpy(mydev_status[i].pic_url, http_url, sizeof(mydev_status[i].pic_url));
-            user_file_store_parameters(http_url);
+            user_file_store_camera_parameters(http_url);
             break;
         }
     }
@@ -195,7 +195,7 @@ EGSIP_RET_CODE camera_get_pic_storage_cb(int handle, int sess_id, char *http_url
         }
         else
         {
-            user_file_load_parameters(http_url);
+            user_file_load_camera_parameters(http_url);
         }
     }
 
@@ -244,7 +244,7 @@ int camera_alarm_report(char *arg)
             }
         }
     
-        user_file_load_command_config(&mydev_command_info);
+        user_file_load_camera_command_config(&mydev_command_info);
     
         for(loop=0; loop<mydev_command_info.alarm_count; loop++)
         {
@@ -485,7 +485,7 @@ void init_camera()
     int i = 0;
     for(i=0;i<MAX_USERS;i++)
     {
-        user_file_load_parameters(mydev_status[i].pic_url);
+        user_file_load_camera_parameters(mydev_status[i].pic_url);
         break;
     }
 }
@@ -498,7 +498,7 @@ void camera_init()
 #if 1
     // 设置设备信息
     memset(&g_camera_dev_info, 0, sizeof(g_camera_dev_info));
-    ret = user_file_load_device_config(&g_camera_dev_info);
+    ret = user_file_load_camera_device_config(&g_camera_dev_info);
     if(ret < 0)
     {
         egsip_log_info("load dev conf file failed, please check.\n");
@@ -555,7 +555,7 @@ void camera_init()
 //    int i = 0;
 //    for(i=0;i<MAX_USERS;i++)
 //    {
-//        user_file_load_parameters(mydev_status[i].pic_url);
+//        user_file_load_camera_parameters(mydev_status[i].pic_url);
 //        break;
 //    }
 	init_camera();

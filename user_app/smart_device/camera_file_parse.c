@@ -9,7 +9,7 @@
 #define TEST_COMMAND_CONFIG_FILE_NAME    "./command_config_hkipc"
 #define TEST_PARAM_FILE_NAME             "./parameters_file_hkipc"
 
-static int user_load_alarm_config(command_info          *mydev_command_info, mydev_json_obj dev_item_obj)
+static int user_load_camera_alarm_config(command_info          *mydev_command_info, mydev_json_obj dev_item_obj)
 {
 
     int loop = 0;
@@ -75,7 +75,7 @@ static int user_load_alarm_config(command_info          *mydev_command_info, myd
     return 0;
 }
 
-int user_file_load_command_config(command_info          *mydev_command_info)
+int user_file_load_camera_command_config(command_info          *mydev_command_info)
 {
     int ret = -1;
     int index = 0;
@@ -150,7 +150,7 @@ int user_file_load_command_config(command_info          *mydev_command_info)
             }
             else if(mydev_command_info->alarm_count > 0)
             {
-                user_load_alarm_config(mydev_command_info, dev_item_obj);
+                user_load_camera_alarm_config(mydev_command_info, dev_item_obj);
             }
             valid_info_cnt++;
             ret = 0;
@@ -175,7 +175,7 @@ int user_file_load_command_config(command_info          *mydev_command_info)
     return ret;
 }
 
-int user_file_load_device_config(egsip_dev_info *mydev_info)
+int user_file_load_camera_device_config(egsip_dev_info *mydev_info)
 {
     int ret = -1;
     int index = 0;
@@ -319,7 +319,7 @@ int user_file_load_device_config(egsip_dev_info *mydev_info)
     return ret;
 }
 
-int user_file_load_parameters(char *pic_url)
+int user_file_load_camera_parameters(char *pic_url)
 {
     int ret = -1;
     int index = 0;
@@ -388,7 +388,7 @@ int user_file_load_parameters(char *pic_url)
 }
 
 
-int user_file_store_parameters(char *pic_url)
+int user_file_store_camera_parameters(char *pic_url)
 {
     FILE *fd_conf = NULL;                   //文件描述符
     char *param_string = NULL;
