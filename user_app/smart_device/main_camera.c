@@ -35,11 +35,11 @@ int main_camera(int argc, char *argv[])
     }
 
     // 初始化设备信息
-    mydev_init();
+    camera_init();
 
     // 创建设备
     int mydev_handle = -1;
-    ret = egsip_dev_create(&g_camera_dev_info, mydev_status_callback, &mydev_handle);
+    ret = egsip_dev_create(&g_camera_dev_info, camera_status_callback, &mydev_handle);
     if(ret != EGSIP_RET_SUCCESS)
     {
         egsip_log_error("egsip_dev_create failed\n");
@@ -74,11 +74,11 @@ int main_camera(int argc, char *argv[])
     {
         //i--;
         //if(i%10 == 0)
-            //mydev_report_alarm(mydev_handle); // 上报事件
+            //camera_report_alarm(mydev_handle); // 上报事件
         usleep(1000*1000);
     }
 
-    mydev_del();
+    camera_del();
 
     // 停止设备
     egsip_dev_stop(mydev_handle);

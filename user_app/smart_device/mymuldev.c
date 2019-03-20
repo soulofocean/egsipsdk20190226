@@ -860,7 +860,7 @@ void Child_process_loop(user_dev_info *user_dev,int dev_offset)
 	egsip_log_info("I'm out\n");
 	ret = DelDispatchMQ(msgbuff.msgType);
 }
-int mydev_init_by_type(EGSIP_DEV_TYPE dev_type)
+int camera_init_by_type(EGSIP_DEV_TYPE dev_type)
 {
 	switch (dev_type)
 		{
@@ -1001,9 +1001,9 @@ int my_dev_single_init(EGSIP_DEV_TYPE dev_type, int dev_offset)
         egsip_log_error("[%s]egsip_sdk_init failed\n",user_dev->dev_info.mac);
         return ret;
     }
-	ret = mydev_init_by_type(user_dev->dev_info.dev_type);
+	ret = camera_init_by_type(user_dev->dev_info.dev_type);
 	if(ret!=EGSIP_RET_SUCCESS){
-		egsip_log_error("(id:%s) mydev_init_by_type failed.\n", user_dev->dev_info.mac);
+		egsip_log_error("(id:%s) camera_init_by_type failed.\n", user_dev->dev_info.mac);
         return ret;
 	}
     //ret = mydev_create();
@@ -1033,7 +1033,7 @@ int my_dev_single_init(EGSIP_DEV_TYPE dev_type, int dev_offset)
 	egsip_log_info("[id:%s]mydev_stop ret = %d\n",user_dev->dev_info.mac,ret);
     egsip_dev_delete(user_dev->dev_handle);
 	free_dev_list();
-	egsip_log_info("[id:%s]mydev_delete ret = %d\n",user_dev->dev_info.mac,ret);
+	egsip_log_info("[id:%s]camera_delete ret = %d\n",user_dev->dev_info.mac,ret);
 	kill(getpid(),9);
     egsip_sdk_uninit();
 	return EGSIP_RET_SUCCESS;

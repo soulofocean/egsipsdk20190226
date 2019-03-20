@@ -1327,9 +1327,9 @@ void init_doorphone()
     mydev_test_start = 1;
 }
 // 设备初始化函数
-void mydev_init_doorphone()
+void camera_init_doorphone()
 {
-    egsip_log_debug("mydev_init_doorphone\n");
+    egsip_log_debug("camera_init_doorphone\n");
 #if 1
     // 设置设备信息
     int ret = 0;

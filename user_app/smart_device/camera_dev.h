@@ -14,15 +14,15 @@ egsip_camera_if_tbl g_camera_req_if_tbl;   // 设备请求接口函数表
 
 void init_camera();
 // 设备初始化函数
-void mydev_init();
+void camera_init();
 
-int mydev_del();
+int camera_del();
 
 // 设备上报报警函数
-void mydev_report_alarm(int handle);
+void camera_report_alarm(int handle);
 
 // 设备状态回调函数
-void mydev_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_info);
+void camera_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_info);
 
 #endif
 

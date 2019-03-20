@@ -41,10 +41,10 @@ typedef struct _doorphone_parameters_info
 
 void init_doorphone();
 // 设备初始化函数
-void mydev_init_doorphone();
+void camera_init_doorphone();
 
 // 设备上报报警函数
-void mydev_report_alarm(int handle);
+void camera_report_alarm(int handle);
 int doorphone_alarm_report(doorphone_command_info *mydev_command_info);
 
 // 设备状态回调函数

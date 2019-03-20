@@ -28,7 +28,7 @@ static int        video_format = 96;
 
 
 // 设备状态回调函数实现
-void mydev_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_info)
+void camera_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_info)
 {
     egsip_log_debug("enter\n", handle);
 	char msgTmp[1024] = {0}; 
@@ -61,7 +61,7 @@ void mydev_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_i
 }
 
 // 被呼叫的回调函数实现
-EGSIP_RET_CODE mydev_called_cb(int handle, int sess_id, egsip_dev_call_info *call_info)
+EGSIP_RET_CODE camera_called_cb(int handle, int sess_id, egsip_dev_call_info *call_info)
 {
     egsip_log_debug("handle(%d) sess_id(%d) be invited.\n", handle, sess_id);
     int i = 0;
@@ -104,7 +104,7 @@ EGSIP_RET_CODE mydev_called_cb(int handle, int sess_id, egsip_dev_call_info *cal
 }
 
 // 流传输开始通知回调函数实现
-EGSIP_RET_CODE mydev_stream_started_cb(int handle, int sess_id, EGSIP_DEV_STREAM_TYPE stream_flag)
+EGSIP_RET_CODE camera_stream_started_cb(int handle, int sess_id, EGSIP_DEV_STREAM_TYPE stream_flag)
 {
     egsip_log_debug("handle(%d) sess_id(%d) start send audio and video frame.\n", handle, sess_id);
     int i = 0;
@@ -121,7 +121,7 @@ EGSIP_RET_CODE mydev_stream_started_cb(int handle, int sess_id, EGSIP_DEV_STREAM
 }
 
 // 呼叫被应答回调函数实现
-EGSIP_RET_CODE mydev_call_answered_cb(int handle, int sess_id)
+EGSIP_RET_CODE camera_call_answered_cb(int handle, int sess_id)
 {
     egsip_log_debug("handle(%d) sess_id(%d)\n", handle, sess_id);
     
@@ -129,7 +129,7 @@ EGSIP_RET_CODE mydev_call_answered_cb(int handle, int sess_id)
 }
 
 // 呼叫被停止回调函数实现
-EGSIP_RET_CODE  mydev_call_stopped_cb(int handle, int sess_id, int status)
+EGSIP_RET_CODE  camra_call_stopped_cb(int handle, int sess_id, int status)
 {
     egsip_log_debug("handle(%d) sess_id(%d)\n", handle, sess_id);
     int i = 0;
@@ -145,7 +145,7 @@ EGSIP_RET_CODE  mydev_call_stopped_cb(int handle, int sess_id, int status)
     return EGSIP_RET_SUCCESS;
 }
 
-EGSIP_RET_CODE mydev_device_upgrade_cb(int handle, int sess_id, char *file_url, char *ftp_addr)
+EGSIP_RET_CODE camera_device_upgrade_cb(int handle, int sess_id, char *file_url, char *ftp_addr)
 {
     if ((file_url == NULL) || (ftp_addr == NULL))
     {
@@ -159,7 +159,7 @@ EGSIP_RET_CODE mydev_device_upgrade_cb(int handle, int sess_id, char *file_url, 
     return EGSIP_RET_SUCCESS;
 }
 
-EGSIP_RET_CODE mydev_set_pic_storage_cb(int handle, int sess_id, char *http_url)
+EGSIP_RET_CODE camera_set_pic_storage_cb(int handle, int sess_id, char *http_url)
 {
     if ((http_url == NULL) && (strlen(http_url) > 127))
     {
@@ -182,7 +182,7 @@ EGSIP_RET_CODE mydev_set_pic_storage_cb(int handle, int sess_id, char *http_url)
     return EGSIP_RET_SUCCESS;
 }
 
-EGSIP_RET_CODE mydev_get_pic_storage_cb(int handle, int sess_id, char *http_url)
+EGSIP_RET_CODE camera_get_pic_storage_cb(int handle, int sess_id, char *http_url)
 {
 
     int i = 0;
@@ -203,7 +203,7 @@ EGSIP_RET_CODE mydev_get_pic_storage_cb(int handle, int sess_id, char *http_url)
     return EGSIP_RET_SUCCESS;
 }
 
-void mydev_alarm_report_res_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
+void camera_alarm_report_res_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
 {
    egsip_log_debug("enter.\n");
    egsip_log_debug("handle(%d).\n", handle);
@@ -211,7 +211,7 @@ void mydev_alarm_report_res_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
    egsip_log_debug("ret(%d).\n",ret);
 }
 
-int mydev_alarm_report(char *arg)
+int camera_alarm_report(char *arg)
     {
         int loop = 0;
         int i = 0;
@@ -250,7 +250,7 @@ int mydev_alarm_report(char *arg)
         {
            egsip_log_info("report(%d).\n", loop);
             g_camera_req_if_tbl.dev_alarm_report_if(mydev_status[0].handle, (mydev_status[0].sess_id+7+loop), 
-                                                mydev_alarm_report_res_cb, &(mydev_command_info.alarm_info[loop]));
+                                                camera_alarm_report_res_cb, &(mydev_command_info.alarm_info[loop]));
         }
     
         for(loop=0; loop<MAX_COMMAND; loop++)
@@ -262,7 +262,7 @@ int mydev_alarm_report(char *arg)
     }
 
 
-void *mydev_input_test_task_fn(void *arg)
+void *camera_input_test_task_fn(void *arg)
 {
     char *read_input = NULL;
     char input_req[1024];
@@ -294,7 +294,7 @@ void *mydev_input_test_task_fn(void *arg)
 
         if(strncmp(input_req, "alarm", strlen("alarm")) == 0)
         {
-            mydev_alarm_report(input_req_cont);
+            camera_alarm_report(input_req_cont);
         }
         else if(strncmp(input_req, "video", strlen("video")) == 0)
         {
@@ -316,7 +316,7 @@ void *mydev_input_test_task_fn(void *arg)
     return NULL;
 }
 
-void *mydev_send_media_task_fn(void *arg)
+void *camera_send_media_task_fn(void *arg)
 {
     struct pcap_pkthdr *ptk_header;
     FILE   *fp;
@@ -443,18 +443,18 @@ void *mydev_send_media_task_fn(void *arg)
     return NULL;
 }
 
-int start_mydev_test()
+int start_camera_test()
 {
     int ret = -1;
     int arg = 0;
     pthread_t task_id = 0;
-    ret = pthread_create( &task_id, NULL, mydev_input_test_task_fn, (void *)(&arg));
+    ret = pthread_create( &task_id, NULL, camera_input_test_task_fn, (void *)(&arg));
     if((ret < 0) || (task_id < 0))
     {
         egsip_log_debug("mydev test task create failed.\n");
     }
 
-    ret = pthread_create(&task_id, NULL,  mydev_send_media_task_fn, (void *)(&arg));
+    ret = pthread_create(&task_id, NULL,  camera_send_media_task_fn, (void *)(&arg));
     if((ret < 0) || (task_id < 0))
     {
         egsip_log_debug("mydev test task create failed.\n");
@@ -468,15 +468,15 @@ void init_camera()
 	egsip_log_debug("enter\n");
 
     // 设置服务器请求回调函数表
-    g_camera_status_cb = mydev_status_callback;
+    g_camera_status_cb = camera_status_callback;
     memset(&g_camera_srv_req_cb_tbl, 0, sizeof(g_camera_srv_req_cb_tbl));
-    g_camera_srv_req_cb_tbl.called_cb         = mydev_called_cb;
-    g_camera_srv_req_cb_tbl.stream_started_cb = mydev_stream_started_cb;
-    g_camera_srv_req_cb_tbl.call_answered_cb  = mydev_call_answered_cb;
-    g_camera_srv_req_cb_tbl.call_stopped_cb   = mydev_call_stopped_cb;
-    g_camera_srv_req_cb_tbl.device_upgrade_cb = mydev_device_upgrade_cb;
-    g_camera_srv_req_cb_tbl.set_pic_storage_cb= mydev_set_pic_storage_cb;
-    g_camera_srv_req_cb_tbl.get_pic_storage_cb= mydev_get_pic_storage_cb;
+    g_camera_srv_req_cb_tbl.called_cb         = camera_called_cb;
+    g_camera_srv_req_cb_tbl.stream_started_cb = camera_stream_started_cb;
+    g_camera_srv_req_cb_tbl.call_answered_cb  = camera_call_answered_cb;
+    g_camera_srv_req_cb_tbl.call_stopped_cb   = camra_call_stopped_cb;
+    g_camera_srv_req_cb_tbl.device_upgrade_cb = camera_device_upgrade_cb;
+    g_camera_srv_req_cb_tbl.set_pic_storage_cb= camera_set_pic_storage_cb;
+    g_camera_srv_req_cb_tbl.get_pic_storage_cb= camera_get_pic_storage_cb;
 
     mydev_test_start = 1;
 
@@ -491,9 +491,9 @@ void init_camera()
 }
 
 // 设备初始化函数
-void mydev_init()
+void camera_init()
 {
-    egsip_log_debug("mydev_init\n");
+    egsip_log_debug("camera_init\n");
     int ret = 0;
 #if 1
     // 设置设备信息
@@ -540,13 +540,13 @@ void mydev_init()
 //
 //    // 设置服务器请求回调函数表
 //    memset(&g_camera_srv_req_cb_tbl, 0, sizeof(g_camera_srv_req_cb_tbl));
-//    g_camera_srv_req_cb_tbl.called_cb         = mydev_called_cb;
-//    g_camera_srv_req_cb_tbl.stream_started_cb = mydev_stream_started_cb;
-//    g_camera_srv_req_cb_tbl.call_answered_cb  = mydev_call_answered_cb;
-//    g_camera_srv_req_cb_tbl.call_stopped_cb   = mydev_call_stopped_cb;
-//    g_camera_srv_req_cb_tbl.device_upgrade_cb = mydev_device_upgrade_cb;
-//    g_camera_srv_req_cb_tbl.set_pic_storage_cb= mydev_set_pic_storage_cb;
-//    g_camera_srv_req_cb_tbl.get_pic_storage_cb= mydev_get_pic_storage_cb;
+//    g_camera_srv_req_cb_tbl.called_cb         = camera_called_cb;
+//    g_camera_srv_req_cb_tbl.stream_started_cb = camera_stream_started_cb;
+//    g_camera_srv_req_cb_tbl.call_answered_cb  = camera_call_answered_cb;
+//    g_camera_srv_req_cb_tbl.call_stopped_cb   = camra_call_stopped_cb;
+//    g_camera_srv_req_cb_tbl.device_upgrade_cb = camera_device_upgrade_cb;
+//    g_camera_srv_req_cb_tbl.set_pic_storage_cb= camera_set_pic_storage_cb;
+//    g_camera_srv_req_cb_tbl.get_pic_storage_cb= camera_get_pic_storage_cb;
 //
 //    mydev_test_start = 1;
 //
@@ -559,10 +559,10 @@ void mydev_init()
 //        break;
 //    }
 	init_camera();
-    start_mydev_test();
+    start_camera_test();
 }
 
-int mydev_del()
+int camera_del()
 {
     if (g_camera_dev_info.subdev_info != NULL)
     {
@@ -575,12 +575,12 @@ int mydev_del()
 int g_msg_id = 0;
 
 // 设备报警上报函数
-void mydev_report_alarm(int handle)
+void camera_report_alarm(int handle)
 {
     if(g_camera_req_if_tbl.dev_alarm_report_if)
     {
         egsip_dev_alarm_info alarm_info={0};
-        (*g_camera_req_if_tbl.dev_alarm_report_if)(handle, g_msg_id, mydev_alarm_report_res_cb, &alarm_info);
+        (*g_camera_req_if_tbl.dev_alarm_report_if)(handle, g_msg_id, camera_alarm_report_res_cb, &alarm_info);
     }
 }
 
