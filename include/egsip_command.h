@@ -266,9 +266,9 @@ typedef EGSIP_RET_CODE (*egsip_dev_stop_call_if)(int handle, int sess_id, egsip_
 typedef struct _egsip_dev_alarm_info
 {
     int priority;       // 必选,报警级别
-    char * time;        // 必选,报警时间
+    char time[64];        // 必选,报警时间
     int method;         // 必选,报警方式
-    char * desc;        // 可选,报警描述
+    char desc[128];        // 可选,报警描述
     double longitude;   // 可选,经度
     double latitude;    // 可选,纬度
     egsip_subdev_id * subdev_id; // 可选，NULL表示主设备

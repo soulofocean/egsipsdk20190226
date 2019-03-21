@@ -209,13 +209,17 @@ void camera_alarm_report_res_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
    egsip_log_debug("handle(%d).\n", handle);
    egsip_log_debug("req_id(%d).\n", msg_id);
    egsip_log_debug("ret(%d).\n",ret);
+   char msgTmp[1024] = {0}; 
+   sprintf(msgTmp,"handle(%d) msg_id=[%d] ret=[%d]\n", handle,msg_id,ret);
+   egsip_log_debug("%s\n", msgTmp);
+   DevMsgAck(ret, msgTmp, USE_LONG_MSG);
 }
 
-int camera_alarm_report(char *arg)
+int camera_alarm_report_by_file(char *arg)
     {
         int loop = 0;
         int i = 0;
-        command_info  mydev_command_info;
+        camera_command_info  mydev_command_info;
         memset(&mydev_command_info, 0 ,sizeof(mydev_command_info));
 
 #if 0
@@ -261,6 +265,24 @@ int camera_alarm_report(char *arg)
         return 0;
     }
 
+int camera_alarm_report(camera_command_info *mydev_command_info)
+{
+	int loop = 0;
+	int ret = 0;
+	for(loop=0; loop<mydev_command_info->alarm_count; loop++)
+    {
+       egsip_log_info("report(%d) time =[%s].\n", loop,mydev_command_info->alarm_info[loop].time);
+        ret = g_camera_req_if_tbl.dev_alarm_report_if(mydev_status[0].handle, (mydev_status[0].sess_id+7+loop), 
+                                            camera_alarm_report_res_cb, &(mydev_command_info->alarm_info[loop]));
+		egsip_log_info("report(%d) complete.ret=[%d]\n",loop,ret);
+    }
+	for(loop=0; loop<MAX_COMMAND; loop++)
+    {
+        free(mydev_command_info->alarm_info[loop].subdev_id);
+		free(mydev_command_info->alarm_info[loop].alarm_param);
+    }
+    return 0;
+}
 
 void *camera_input_test_task_fn(void *arg)
 {
@@ -294,7 +316,7 @@ void *camera_input_test_task_fn(void *arg)
 
         if(strncmp(input_req, "alarm", strlen("alarm")) == 0)
         {
-            camera_alarm_report(input_req_cont);
+            camera_alarm_report_by_file(input_req_cont);
         }
         else if(strncmp(input_req, "video", strlen("video")) == 0)
         {
@@ -575,7 +597,7 @@ int camera_del()
 int g_msg_id = 0;
 
 // 设备报警上报函数
-void camera_report_alarm(int handle)
+void camera_alarm_report_by_id(int handle)
 {
     if(g_camera_req_if_tbl.dev_alarm_report_if)
     {

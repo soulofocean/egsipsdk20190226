@@ -525,7 +525,7 @@ void doorphone_alarm_report_res_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
    DevMsgAck(ret,tmp,USE_LONG_MSG);
 }
 
-int doorphone_alarm_report_by_id(char *arg)
+int doorphone_alarm_report_by_file(char *arg)
 {
     int loop = 0;
     doorphone_command_info  mydev_command_info;
@@ -807,7 +807,7 @@ void *doorphone_input_test_task_fn(void *arg)
 
         if(strncmp(input_req, "alarm", strlen("alarm")) == 0)
         {
-            doorphone_alarm_report_by_id(input_req_cont);
+            doorphone_alarm_report_by_file(input_req_cont);
         }
         else if(strncmp(input_req, "call", strlen("call")) == 0)
         {
@@ -1430,7 +1430,7 @@ void camera_init_doorphone()
     start_doorphone_test();
 }
 
-int doorphone_del_doorphone()
+int doorphone_del()
 {
     mydev_test_start = 0;
     return 0;

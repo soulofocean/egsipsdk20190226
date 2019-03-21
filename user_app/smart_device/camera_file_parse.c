@@ -9,7 +9,7 @@
 #define CAMERA_COMMAND_CONFIG_FILE_NAME    "./command_config_hkipc"
 #define CAMERA_PARAM_FILE_NAME             "./parameters_file_hkipc"
 
-static int user_load_camera_alarm_config(command_info          *mydev_command_info, mydev_json_obj dev_item_obj)
+static int user_load_camera_alarm_config(camera_command_info          *mydev_command_info, mydev_json_obj dev_item_obj)
 {
 
     int loop = 0;
@@ -75,7 +75,7 @@ static int user_load_camera_alarm_config(command_info          *mydev_command_in
     return 0;
 }
 
-int user_file_load_camera_command_config(command_info          *mydev_command_info)
+int user_file_load_camera_command_config(camera_command_info          *mydev_command_info)
 {
     int ret = -1;
     int index = 0;

@@ -7,6 +7,7 @@
 #include<string.h>
 #include "myMQ.h"
 #include "egsip_util.h"
+DEV_MSG_ACK_ENUM global_ack_type = SHORT_ACK;
 unsigned int GetMQMsgType(int dev_type,int dev_offset)
 {
 	return (dev_type << DEV_INDEX_OFFSET) + dev_offset;
@@ -206,14 +207,37 @@ void DevMsgAck(int code,char* msg,int useLongMsg)
 	egsip_log_debug("enter.\n");
 	EGSIP_RET_CODE ret = EGSIP_RET_ERROR;
 	//后续useLongMsg可能扩展成枚举，这里先直接判断
-	if(useLongMsg == 1)
+	switch (global_ack_type)
 	{
-		ret = PutSendMQ(msg);
+		case LONG_ACK:
+		{
+			ret = PutSendMQ(msg);
+			break;
+		}
+		case SHORT_ACK:
+		{
+			ret = PutSendShortMQ(code);
+			break;
+		}
+		case NO_ACK:
+		{
+			egsip_log_debug("PID[%d] is set NO_ACK\n",getpid());
+			break;
+		}
+		default:
+		{
+			egsip_log_error("Invalid Type:[%d]",global_ack_type);
+			break;
+		}
 	}
-	else
-	{
-		ret = PutSendShortMQ(code);
-	}
+//	if(global_ack_type == LONG_ACK)
+//	{
+//		ret = PutSendMQ(msg);
+//	}
+//	else
+//	{
+//		ret = PutSendShortMQ(code);
+//	}
 	egsip_log_debug("pid:[%d] DevMsgAck=[%d]\n",getpid(),ret);
 }
 

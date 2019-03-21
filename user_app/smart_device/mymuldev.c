@@ -19,7 +19,7 @@ mydev_json_obj s_device_config_obj = NULL;  //设备用户配置信息
 static int s_mydev_status = 0;
 static int s_mydev_dev_magic_num;           //设备唯一MAGIC数字
 
-#define MUL_DEVICE_CONFIG_FILE_NAME    "./device_config_hkipc"
+#define MUL_DEVICE_CONFIG_FILE_NAME    "./device_config_mul"
 static int user_dev_enqueue(struct list_head *head, user_dev_info *dev_obj, int *magic_num)
 {
     if( (NULL == dev_obj) ||
@@ -798,6 +798,7 @@ int processUploadInfo(user_dev_info *user_dev,char * input_req_cmd)
 		if(user_dev->dev_info.dev_type == EGSIP_TYPE_ENTRA_MACHINE)
 		{
 			//alarm [EventType] [SubdevType] [DESC] [ImgUrl] [UsetID] [UserType]
+			//dev_ctl 0 0 alarm 0 3046 HD_DOORPHONE0 1.jpg 77550003 2011
 			egsip_log_info("Parse devtype:[%d] cmd\n",user_dev->dev_info.dev_type);
 			doorphone_command_info  mydev_command_info;
 			memset(&mydev_command_info, 0 ,sizeof(mydev_command_info));
@@ -815,12 +816,52 @@ int processUploadInfo(user_dev_info *user_dev,char * input_req_cmd)
 			ret = doorphone_alarm_report(&mydev_command_info);
 			egsip_log_info("doorphone_alarm_report:ret = [%d]\n",ret);
 		}
+		else if(user_dev->dev_info.dev_type == EGSIP_TYPE_CAMERA)
+		{
+			//alarm [Piority] [Method] [DESC] [Longitude] [Latitude] [AlarmType] [alarm_param] [SubdevType]
+			//dev_ctl 0 0 alarm 2 5 HD_IPC0 17.17 18.18 12 CHINA-1 0
+			//dev_ctl 0 0 alarm 2 5 HD_IPC0 17.17 18.18 12 CHINA-1 3001
+			egsip_log_info("Parse devtype:[%d] cmd\n",user_dev->dev_info.dev_type);
+			camera_command_info  mydev_command_info;
+			memset(&mydev_command_info, 0 ,sizeof(mydev_command_info));
+			mydev_command_info.alarm_count = 1;
+			mydev_command_info.alarm_info[0].priority = atoi(arg_arr[1]);
+			get_current_time_str(1, mydev_command_info.alarm_info[0].time);//获取time
+			mydev_command_info.alarm_info[0].method = atoi(arg_arr[2]);
+			strcpy(mydev_command_info.alarm_info[0].desc ,arg_arr[3]);
+			mydev_command_info.alarm_info[0].longitude = atof(arg_arr[4]);
+			mydev_command_info.alarm_info[0].latitude = atof(arg_arr[5]);
+			mydev_command_info.alarm_info[0].alarm_type = atoi(arg_arr[6]);
+			mydev_command_info.alarm_info[0].alarm_param = (char*)malloc(ARG_LEN);
+			strcpy((char*)mydev_command_info.alarm_info[0].alarm_param ,arg_arr[7]);
+			if(atoi(arg_arr[8])==0)
+			{
+				mydev_command_info.alarm_info[0].subdev_id = NULL;
+			}
+			else
+			{
+				mydev_command_info.alarm_info[0].subdev_id = (egsip_subdev_id *)malloc(sizeof(egsip_subdev_id));
+				strcpy(mydev_command_info.alarm_info[0].subdev_id->mac,user_dev->dev_info.mac);
+				mydev_command_info.alarm_info[0].subdev_id->subdev_type = atoi(arg_arr[8]);
+				mydev_command_info.alarm_info[0].subdev_id->subdev_num = 1;
+				egsip_log_debug("Parse complete, subdevid=[%04d%s%04d]",mydev_command_info.alarm_info[0].subdev_id->subdev_type,
+					mydev_command_info.alarm_info[0].subdev_id->mac,mydev_command_info.alarm_info[0].subdev_id->subdev_num);
+			}
+			egsip_log_info("Parse devtype:[%d] cmd comlete alarm_param=[%s]\n",user_dev->dev_info.dev_type,mydev_command_info.alarm_info[0].alarm_param);
+			ret = camera_alarm_report(&mydev_command_info);
+			egsip_log_info("camera_alarm_report:ret = [%d]\n",ret);
+		}
 		else
 		{
 			egsip_log_error("Not support dev type [%d] in [record] cmd\n",user_dev->dev_info.dev_type);
 			return EGSIP_RET_NO_SURPORT;
 		}
     }
+	else if(strcmp(input_req_cmd, "acktype") == 0)
+	{
+		global_ack_type = atoi(arg_arr[1]);
+		egsip_log_debug("global_ack_type = [%d]",global_ack_type);
+	}
     else
     {
         egsip_log_user("no found req(%s), skip.\n", input_req_cmd);
@@ -1024,7 +1065,11 @@ int my_dev_single_init(EGSIP_DEV_TYPE dev_type, int dev_offset)
 	Child_process_loop(user_dev,dev_offset);
 	if(user_dev->dev_info.dev_type == EGSIP_TYPE_ENTRA_MACHINE)
 	{
-		doorphone_del_doorphone();
+		doorphone_del();
+	}
+	if(user_dev->dev_info.dev_type == EGSIP_TYPE_CAMERA)
+	{
+		camera_del();
 	}
 	//sleep(1);//等1秒再结束，为了防止主进程无限等待下去，待验证是否有效
 	egsip_log_info("[id:%s]DelDispatchMQ ret = %d\n",user_dev->dev_info.mac,ret);
@@ -1035,7 +1080,7 @@ int my_dev_single_init(EGSIP_DEV_TYPE dev_type, int dev_offset)
 	free_dev_list();
 	egsip_log_info("[id:%s]camera_delete ret = %d\n",user_dev->dev_info.mac,ret);
 	kill(getpid(),9);
-    egsip_sdk_uninit();
+    egsip_sdk_uninit();//这个SDK死循环，目前采取kill来规避，后续可以修改此函数显得更好些
 	return EGSIP_RET_SUCCESS;
 }
 

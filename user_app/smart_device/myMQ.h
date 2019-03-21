@@ -15,6 +15,11 @@
 #define DEV_INDEX_OFFSET 16			//预留16bit放设备序号，DEVTYPE<<16
 #define DEV_OFFSET_OP 0xFFFF		//和上面的16bits对应
 #define USE_LONG_MSG 1			//发长消息为1短消息为0，默认发长消息
+typedef enum _dev_msg_ack_enum{
+	NO_ACK = 0,
+	SHORT_ACK = 1,
+	LONG_ACK = 2
+}DEV_MSG_ACK_ENUM;
 typedef struct _msgQueenDataType{
 	int offset;
 	int devType;
@@ -35,6 +40,7 @@ typedef enum _ipc_wait_enum{
 	ipc_need_wait = 0,
 	ipc_no_wait = IPC_NOWAIT
 }IPC_WAIT_ENUM;
+extern DEV_MSG_ACK_ENUM global_ack_type;
 unsigned int GetMQMsgType(int dev_type,int dev_offset);
 unsigned int GetDevType(unsigned int msg_type);
 unsigned int GetDevCount(unsigned int msg_type);

@@ -74,7 +74,7 @@ int main_camera(int argc, char *argv[])
     {
         //i--;
         //if(i%10 == 0)
-            //camera_report_alarm(mydev_handle); // 上报事件
+            //camera_alarm_report_by_id(mydev_handle); // 上报事件
         usleep(1000*1000);
     }
 

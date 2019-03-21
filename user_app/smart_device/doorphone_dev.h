@@ -44,13 +44,13 @@ void init_doorphone();
 void camera_init_doorphone();
 
 // 设备上报报警函数
-void camera_report_alarm(int handle);
+int doorphone_alarm_report_by_file(char* arg);
 int doorphone_alarm_report(doorphone_command_info *mydev_command_info);
 
 // 设备状态回调函数
 void doorphone_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_info);
 
-int doorphone_del_doorphone();
+int doorphone_del();
 
 #endif
 
