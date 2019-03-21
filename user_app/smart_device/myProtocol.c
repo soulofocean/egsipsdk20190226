@@ -20,7 +20,7 @@ const char devMacFlag[] = "===DEV_MAC===";
 const char gateOpenModeFlag[] = "===GATE_OPEN_MODE===";
 const char imgPathFlag[] = "===IMG_PATH===";
 const char passTypeFlag[] = "===PASS_TYPE===";
-
+unsigned int global_fork_us = 1000;
 int Update_Dev_Fork_List(unsigned int arr[], int arrIndex, EGSIP_DEV_TYPE devType, int devCount)
 {
 	if(arrIndex > DEV_FORK_LIST_MAX_SIZE - 1){
@@ -181,6 +181,7 @@ int ForkMulDev(unsigned int dev_arr[],msgQueenDataType *myarg)
 				child_break = 1;
 				break;
 			}
+			usleep(global_fork_us);
 		}
 		if(child_break)
 			break;
@@ -212,11 +213,16 @@ int split_arg_by_space(char *source_arg,char (*result)[ARG_LEN],int arg_count,in
 		(*used_count)++;
 		strcpy(tmp,result[arg_index+1]);
 	}
-	if(arg_index==arg_count-1)
+	if(arg_index == arg_count-1 && strcmp(result[arg_index],"\0")!=0 && *used_count<ARG_ARR_COUNT)
 	{
 		(*used_count)++;
 	}
+//	if(arg_index==arg_count-1)
+//	{
+//		(*used_count)++;
+//	}
 	//display result
+	egsip_log_debug("usedcount=[%d]\n",*used_count);
 	for(arg_index=0;arg_index<ARG_ARR_COUNT;++arg_index){
 		egsip_log_info("result[%d]=[%s]\tcompare:%d\n",arg_index,result[arg_index],strcmp(result[arg_index],"\0"));
 	}

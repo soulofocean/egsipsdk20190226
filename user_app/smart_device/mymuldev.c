@@ -1110,7 +1110,8 @@ int process_loop_msg()
 			continue;
 		}
 		//dev_init [ARR_Index] [DEV_Type] [Number]
-		//dev_start/dev_stop
+		//dev_start [ACKTYPE] [FORKDELAY_MS]
+		//dev_stop
 		//dev_ctl [DEV_Type] [DEV_Index] [CMD] (CMD_ARG)
 		ret = split_arg_by_space(msgbuff.msgData.info,arg_arr,arg_current_len,&used_count);
 		if(strcmp(arg_arr[0],"dev_init")==0){
@@ -1130,11 +1131,20 @@ int process_loop_msg()
 		}
 		else if(strcmp(arg_arr[0],"dev_start")==0){
 			egsip_log_info("Process dev_start\n");
-			//TODO:Fork 子设备进程
 			if(isStarted){
 				strcpy(str_tmp,"dev is Started Please stop first!");
 			}
 			else{
+				if(used_count>=2)
+				{
+					//设置默认消息
+					global_ack_type = atoi(arg_arr[1]);
+				}
+				if(used_count==3)
+				{
+					//设置fork间隔
+					global_fork_us = atoi(arg_arr[2])*1000;
+				}
 				ret = ForkMulDev(dev_arr,&myarg);
 				sprintf(str_tmp,"dev_start ret = [%d]",ret);
 				if(ret<0){
