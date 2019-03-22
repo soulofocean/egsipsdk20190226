@@ -19,8 +19,9 @@ egsip_camera_cb_tbl g_camera_srv_req_cb_tbl;     // 服务器请求回调函数�
 egsip_camera_if_tbl g_camera_req_if_tbl;   // 设备请求接口函数表
 
 void init_camera();
+int start_camera_test_mul();
 // 设备初始化函数
-void camera_init();
+void mydev_init_camera();
 
 int camera_del();
 

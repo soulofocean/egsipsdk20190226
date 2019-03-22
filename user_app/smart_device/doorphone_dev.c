@@ -1274,6 +1274,39 @@ int start_doorphone_test()
 
     return 0;
 }
+int start_doorphone_test_mul()
+{
+    int ret = -1;
+    int arg = 0;
+    pthread_t task_id = 0;
+
+//    ret = pthread_create( &task_id, NULL, doorphone_input_test_task_fn, (void *)(&arg));
+//    if((ret < 0) || (task_id < 0))
+//    {
+//        egsip_log_debug("mydev test task create failed.\n");
+//    }
+
+    ret = pthread_create(&task_id, NULL,  doorphone_send_video_task_fn, (void *)(&arg));
+    if((ret < 0) || (task_id < 0))
+    {
+        egsip_log_debug("mydev test task create failed.\n");
+    }
+
+    ret = pthread_create(&task_id, NULL,  doorphone_send_audio_task_fn, (void *)(&arg));
+    if((ret < 0) || (task_id < 0))
+    {
+        egsip_log_debug("mydev test task create failed.\n");
+    }
+
+    ret = pthread_create(&task_id, NULL,  doorphone_recv_media_task_fn, (void *)(&arg));
+    if((ret < 0) || (task_id < 0))
+    {
+        egsip_log_debug("mydev test task create failed.\n");
+    }
+
+    return 0;
+}
+
 void init_doorphone()
 {
 	// 设置服务器请求回调函数表
@@ -1327,9 +1360,9 @@ void init_doorphone()
     mydev_test_start = 1;
 }
 // 设备初始化函数
-void camera_init_doorphone()
+void mydev_init_doorphone()
 {
-    egsip_log_debug("camera_init_doorphone\n");
+    egsip_log_debug("mydev_init_doorphone\n");
 #if 1
     // 设置设备信息
     int ret = 0;

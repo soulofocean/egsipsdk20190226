@@ -484,6 +484,26 @@ int start_camera_test()
 
     return 0;
 }
+int start_camera_test_mul()
+{
+    int ret = -1;
+    int arg = 0;
+    pthread_t task_id = 0;
+//    ret = pthread_create( &task_id, NULL, camera_input_test_task_fn, (void *)(&arg));
+//    if((ret < 0) || (task_id < 0))
+//    {
+//        egsip_log_debug("mydev test task create failed.\n");
+//    }
+
+    ret = pthread_create(&task_id, NULL,  camera_send_media_task_fn, (void *)(&arg));
+    if((ret < 0) || (task_id < 0))
+    {
+        egsip_log_debug("mydev test task create failed.\n");
+    }
+
+    return 0;
+}
+
 void init_camera()
 {
 	
@@ -513,9 +533,9 @@ void init_camera()
 }
 
 // 设备初始化函数
-void camera_init()
+void mydev_init_camera()
 {
-    egsip_log_debug("camera_init\n");
+    egsip_log_debug("mydev_init_camera\n");
     int ret = 0;
 #if 1
     // 设置设备信息

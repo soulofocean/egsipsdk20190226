@@ -726,7 +726,7 @@ int check_dev_ctl_arg(char (*arg_arr)[ARG_LEN],unsigned int *dev_arr, int dev_ar
 		}
 	}
 	//校验命令是否存在
-	if(strncmp(arg_arr[3], "alarm", strlen("status")) != 0&&strncmp(arg_arr[3], "acktype", strlen("acktype")) != 0)
+	if(strncmp(arg_arr[3], "alarm", strlen("alarm")) != 0&&strncmp(arg_arr[3], "acktype", strlen("acktype")) != 0)
 	{
 		sprintf(str_tmp,"Invalid match cmd [%s]",arg_arr[3]);
 		ret = -1;
@@ -894,18 +894,20 @@ void Child_process_loop(user_dev_info *user_dev,int dev_offset)
 	egsip_log_info("I'm out\n");
 	ret = DelDispatchMQ(msgbuff.msgType);
 }
-int camera_init_by_type(EGSIP_DEV_TYPE dev_type)
+int mydev_init_by_type(EGSIP_DEV_TYPE dev_type)
 {
 	switch (dev_type)
 		{
 			case EGSIP_TYPE_ENTRA_MACHINE:
 			{
 				init_doorphone();
+				start_doorphone_test_mul();
 				break;
 			}
 			case EGSIP_TYPE_CAMERA:
 			{
 				init_camera();
+				start_camera_test_mul();
 				break;
 			}
 			default:
@@ -1035,9 +1037,9 @@ int my_dev_single_init(EGSIP_DEV_TYPE dev_type, int dev_offset)
         egsip_log_error("[%s]egsip_sdk_init failed\n",user_dev->dev_info.mac);
         return ret;
     }
-	ret = camera_init_by_type(user_dev->dev_info.dev_type);
+	ret = mydev_init_by_type(user_dev->dev_info.dev_type);
 	if(ret!=EGSIP_RET_SUCCESS){
-		egsip_log_error("(id:%s) camera_init_by_type failed.\n", user_dev->dev_info.mac);
+		egsip_log_error("(id:%s) mydev_init_by_type failed.\n", user_dev->dev_info.mac);
         return ret;
 	}
     //ret = mydev_create();

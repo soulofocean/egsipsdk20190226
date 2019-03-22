@@ -35,7 +35,7 @@ int main_camera(int argc, char *argv[])
     }
 
     // 初始化设备信息
-    camera_init();
+    mydev_init_camera();
 
     // 创建设备
     int mydev_handle = -1;

@@ -35,7 +35,7 @@ int main_doorphones(int argc, char *argv[])
     }
 
     // 初始化设备信息
-    camera_init_doorphone();
+    mydev_init_doorphone();
 
     // 创建设备
     g_doorphone_dev_handle = -1;

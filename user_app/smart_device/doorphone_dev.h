@@ -40,8 +40,9 @@ typedef struct _doorphone_parameters_info
 
 
 void init_doorphone();
+int start_doorphone_test_mul();
 // 设备初始化函数
-void camera_init_doorphone();
+void mydev_init_doorphone();
 
 // 设备上报报警函数
 int doorphone_alarm_report_by_file(char* arg);
