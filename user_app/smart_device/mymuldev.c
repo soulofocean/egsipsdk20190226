@@ -726,18 +726,11 @@ int check_dev_ctl_arg(char (*arg_arr)[ARG_LEN],unsigned int *dev_arr, int dev_ar
 		}
 	}
 	//校验命令是否存在
-//	if(strncmp(arg_arr[3], "alarm", strlen("status")) != 0&&
-//			strncmp(arg_arr[3], "record", strlen("record")) != 0&&
-//			strncmp(arg_arr[3], "event", strlen("event")) != 0&&
-//			strncmp(arg_arr[3], "result", strlen("result")) != 0&&
-//			strncmp(arg_arr[3], "fac_status", strlen("fac_status")) != 0&&
-//			strncmp(arg_arr[3], "elevator_record", strlen("elevator_record")) != 0&&
-//			strncmp(arg_arr[3], "fac_ba_status", strlen("fac_ba_status")) != 0&&
-//			strncmp(arg_arr[3], "intercom", strlen("intercom")) != 0)
-//	{
-//		sprintf(str_tmp,"Invalid match cmd [%s]",arg_arr[3]);
-//		ret = -1;
-//	}
+	if(strncmp(arg_arr[3], "alarm", strlen("status")) != 0&&strncmp(arg_arr[3], "acktype", strlen("acktype")) != 0)
+	{
+		sprintf(str_tmp,"Invalid match cmd [%s]",arg_arr[3]);
+		ret = -1;
+	}
 	return ret;
 }
 //向目标为dest_type和dest_offset-1的子设备发送buff中的信息

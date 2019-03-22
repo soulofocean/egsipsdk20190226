@@ -84,10 +84,10 @@ EGSIP_RET_CODE  doorphone_lock_report(int handle, int sess_id, egsip_intercom_un
 void doorphone_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_info)
 {
 	char msgTmp[1024] = {0}; 
-	sprintf(msgTmp,"handle(%d) status=[%d] desc=[%s]\n", handle,status,desc_info);
+	sprintf(msgTmp,"handle(%d) status=[%d] desc=[%s]", handle,status,desc_info);
     egsip_log_debug("%s\n", msgTmp);
 	//PutSendMQ(msgTmp);
-	DevMsgAck(status,msgTmp,USE_LONG_MSG);
+	DevMsgAck(status,msgTmp);
     if (desc_info == NULL)
     {
         egsip_log_debug("handle(%d)  fail.\n", handle);
@@ -522,7 +522,7 @@ void doorphone_alarm_report_res_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
    char tmp[1024]={0};
    sprintf(tmp,"handle[%d] msg_id[%d] ret[%d]",handle,msg_id,ret);
    //PutSendMQ(tmp);
-   DevMsgAck(ret,tmp,USE_LONG_MSG);
+   DevMsgAck(ret,tmp);
 }
 
 int doorphone_alarm_report_by_file(char *arg)

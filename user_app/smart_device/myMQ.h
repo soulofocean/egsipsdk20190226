@@ -62,5 +62,5 @@ int GetSendShortMQ(msg_short_struct *msgbuff);
 int GetDispatchMQ(long msgType,msg_struct *msgbuff);
 int DelDispatchMQ(long msgType);
 int DeleteAllMQ(int max_msg_id);
-void DevMsgAck(int code,char* msg,int useLongMsg);
+void DevMsgAck(int code,char* msg);
 #endif

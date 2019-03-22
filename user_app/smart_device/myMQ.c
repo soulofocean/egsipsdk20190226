@@ -202,7 +202,7 @@ int DeleteAllMQ(int max_msg_id)
 	printf("delete count:%d\n",d_count);
 	return EGSIP_RET_SUCCESS;
 }
-void DevMsgAck(int code,char* msg,int useLongMsg)
+void DevMsgAck(int code,char* msg)
 {
 	egsip_log_debug("enter.\n");
 	EGSIP_RET_CODE ret = EGSIP_RET_ERROR;
@@ -230,14 +230,6 @@ void DevMsgAck(int code,char* msg,int useLongMsg)
 			break;
 		}
 	}
-//	if(global_ack_type == LONG_ACK)
-//	{
-//		ret = PutSendMQ(msg);
-//	}
-//	else
-//	{
-//		ret = PutSendShortMQ(code);
-//	}
 	egsip_log_debug("pid:[%d] DevMsgAck=[%d]\n",getpid(),ret);
 }
 

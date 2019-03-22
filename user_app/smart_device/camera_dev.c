@@ -32,9 +32,9 @@ void camera_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_
 {
     egsip_log_debug("enter\n", handle);
 	char msgTmp[1024] = {0}; 
-	sprintf(msgTmp,"handle(%d) status=[%d] desc=[%s]\n", handle,status,desc_info);
+	sprintf(msgTmp,"handle(%d) status=[%d] desc=[%s]", handle,status,desc_info);
     egsip_log_debug("%s\n", msgTmp);
-	DevMsgAck(status,msgTmp,USE_LONG_MSG);
+	DevMsgAck(status,msgTmp);
     int i;
     switch(status)
     {
@@ -210,9 +210,9 @@ void camera_alarm_report_res_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
    egsip_log_debug("req_id(%d).\n", msg_id);
    egsip_log_debug("ret(%d).\n",ret);
    char msgTmp[1024] = {0}; 
-   sprintf(msgTmp,"handle(%d) msg_id=[%d] ret=[%d]\n", handle,msg_id,ret);
+   sprintf(msgTmp,"handle(%d) msg_id=[%d] ret=[%d]", handle,msg_id,ret);
    egsip_log_debug("%s\n", msgTmp);
-   DevMsgAck(ret, msgTmp, USE_LONG_MSG);
+   DevMsgAck(ret, msgTmp);
 }
 
 int camera_alarm_report_by_file(char *arg)
