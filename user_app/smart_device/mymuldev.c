@@ -925,6 +925,8 @@ static int mydev_create_single(user_dev_info *user_dev)
     int get_len = 0;
     int srv_req_cb_len = 0;
     int dev_req_if_len = 0;
+	memset(&g_doorphone_dev_info, 0, sizeof(g_doorphone_dev_info));
+	memset(&g_camera_dev_info, 0, sizeof(g_camera_dev_info));
     switch(user_dev->dev_info.dev_type)
     {
         case EGSIP_TYPE_ENTRA_MACHINE:
@@ -934,6 +936,7 @@ static int mydev_create_single(user_dev_info *user_dev)
             user_dev->dev_req_if_tbl = (void *)&g_doorphone_req_if_tbl;
             srv_req_cb_len = sizeof(g_doorphone_srv_req_cb_tbl);
             dev_req_if_len = sizeof(g_doorphone_req_if_tbl);
+			g_doorphone_dev_info = user_dev->dev_info;
             break;
         }
 		case EGSIP_TYPE_CAMERA:
@@ -943,6 +946,7 @@ static int mydev_create_single(user_dev_info *user_dev)
             user_dev->dev_req_if_tbl = (void *)&g_camera_req_if_tbl;
             srv_req_cb_len = sizeof(g_camera_srv_req_cb_tbl);
             dev_req_if_len = sizeof(g_camera_req_if_tbl);
+			g_camera_dev_info = user_dev->dev_info;
 		}
         default :
         {
@@ -982,6 +986,10 @@ static int mydev_create_single(user_dev_info *user_dev)
         return ret;
     }
     egsip_log_info("(id:%s) dev create success.\n", user_dev->dev_info.mac);
+	if(user_dev->dev_info.dev_type == EGSIP_TYPE_ENTRA_MACHINE)
+	{
+		g_doorphone_dev_handle = user_dev->dev_handle;
+	}
     return EGSIP_RET_SUCCESS;
 }
 int free_dev_list()
