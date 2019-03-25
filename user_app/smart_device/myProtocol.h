@@ -13,7 +13,8 @@ typedef enum _Rsv_Msg_Process_Result{
 	SEND_MSG = 2
 }RsvMsgProcResultEnum;
 unsigned int CombineInt(unsigned int devType, unsigned int devIndex);
-int Update_Dev_Fork_List(unsigned         int arr[], int arrIndex, EGSIP_DEV_TYPE devType, int devCount);
+size_t MinSize(size_t s1,size_t s2);
+int Update_Dev_Fork_List(unsigned       int arr[], int arrIndex, EGSIP_DEV_TYPE devType, int devCount);
 int my_itoa(int intValue,char *outStr,int str_len);
 int get_current_time_str(int withT,char*outStr);
 int replace_string(char *result, char *source, const char* oldStr, char *destStr);

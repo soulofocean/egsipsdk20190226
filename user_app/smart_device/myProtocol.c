@@ -21,6 +21,10 @@ const char gateOpenModeFlag[] = "===GATE_OPEN_MODE===";
 const char imgPathFlag[] = "===IMG_PATH===";
 const char passTypeFlag[] = "===PASS_TYPE===";
 unsigned int global_fork_us = 1000;
+size_t MinSize(size_t s1,size_t s2)
+{
+	return s1<s2?s1:s2;
+}
 int Update_Dev_Fork_List(unsigned int arr[], int arrIndex, EGSIP_DEV_TYPE devType, int devCount)
 {
 	if(arrIndex > DEV_FORK_LIST_MAX_SIZE - 1){

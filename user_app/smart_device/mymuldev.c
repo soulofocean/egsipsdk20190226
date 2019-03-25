@@ -763,19 +763,7 @@ int dispatch_rcv_msg(unsigned int dest_type,unsigned int dest_offset, unsigned i
 }
 int processUploadInfo(user_dev_info *user_dev,char * input_req_cmd)
 {
-	//char input_req_dev[30] = {0};
-	//char input_req_cont[1024] = {0};
-	//char sub_dev_id[30] = {0};
-	//char dev_id[30] = {0};
-	//char tmp_content[1024] = {0};
-	//char data[1024]={0};
-	//egsip_subdev_id tmp_sub = user_dev->dev_info.subdev_info->subdev_id;
-	//egsip_dev_info *tmp_main = &(user_dev->dev_info);
-	//sprintf(sub_dev_id,"%04d%s%04d",tmp_sub.subdev_type,tmp_sub.subdev_mac,tmp_sub.subdev_num);
-	//sprintf(dev_id,"%04d%04d%s",tmp_main->dev_type,tmp_main->vendor_num,tmp_main->id);
 	egsip_log_info("input_req_cmd = %s\n",input_req_cmd);
-	//egsip_log_info("sub_dev_id = %s\n",sub_dev_id);
-	//egsip_log_info("dev_id = %s\n",dev_id);
 	EGSIP_RET_CODE ret = EGSIP_RET_SUCCESS;
 	ret = user_dev_get_type(&s_mydev_dev_list_head, user_dev->dev_info.dev_type, &user_dev);
 	//对带参数的命令进行参数拆分
@@ -790,59 +778,11 @@ int processUploadInfo(user_dev_info *user_dev,char * input_req_cmd)
     {
 		if(user_dev->dev_info.dev_type == EGSIP_TYPE_ENTRA_MACHINE)
 		{
-			//alarm [EventType] [SubdevType] [DESC] [ImgUrl] [UsetID] [UserType]
-			//dev_ctl 0 0 alarm 0 3046 HD_DOORPHONE0 1.jpg 77550003 2011
-			egsip_log_info("Parse devtype:[%d] cmd\n",user_dev->dev_info.dev_type);
-			doorphone_command_info  mydev_command_info;
-			memset(&mydev_command_info, 0 ,sizeof(mydev_command_info));
-			mydev_command_info.alarm_count = 1;
-			mydev_command_info.alarm_info[0].event_type = atoi(arg_arr[1]);
-			mydev_command_info.alarm_info[0].sub_dev.subdev_type = atoi(arg_arr[2]);
-			strcpy(mydev_command_info.alarm_info[0].sub_dev.mac,user_dev->dev_info.mac);
-			mydev_command_info.alarm_info[0].sub_dev.subdev_num = 1;
-			get_current_time_str(1, mydev_command_info.alarm_info[0].event_time);
-			strcpy(mydev_command_info.alarm_info[0].desc,arg_arr[3]);
-			strcpy(mydev_command_info.alarm_info[0].pic_url,arg_arr[4]);
-			strcpy(mydev_command_info.alarm_info[0].user_id,arg_arr[5]);
-			mydev_command_info.alarm_info[0].user_type  =atoi(arg_arr[6]);
-			egsip_log_info("Parse devtype:[%d] cmd comlete\n",user_dev->dev_info.dev_type);
-			ret = doorphone_alarm_report(&mydev_command_info);
-			egsip_log_info("doorphone_alarm_report:ret = [%d]\n",ret);
+			doorphone_alarm_report_by_arg(&user_dev->dev_info, arg_arr, used_count);
 		}
 		else if(user_dev->dev_info.dev_type == EGSIP_TYPE_CAMERA)
 		{
-			//alarm [Piority] [Method] [DESC] [Longitude] [Latitude] [AlarmType] [alarm_param] [SubdevType]
-			//dev_ctl 0 0 alarm 2 5 HD_IPC0 17.17 18.18 12 CHINA-1 0
-			//dev_ctl 0 0 alarm 2 5 HD_IPC0 17.17 18.18 12 CHINA-1 3001
-			egsip_log_info("Parse devtype:[%d] cmd\n",user_dev->dev_info.dev_type);
-			camera_command_info  mydev_command_info;
-			memset(&mydev_command_info, 0 ,sizeof(mydev_command_info));
-			mydev_command_info.alarm_count = 1;
-			mydev_command_info.alarm_info[0].priority = atoi(arg_arr[1]);
-			get_current_time_str(1, mydev_command_info.alarm_info[0].time);//获取time
-			mydev_command_info.alarm_info[0].method = atoi(arg_arr[2]);
-			strcpy(mydev_command_info.alarm_info[0].desc ,arg_arr[3]);
-			mydev_command_info.alarm_info[0].longitude = atof(arg_arr[4]);
-			mydev_command_info.alarm_info[0].latitude = atof(arg_arr[5]);
-			mydev_command_info.alarm_info[0].alarm_type = atoi(arg_arr[6]);
-			mydev_command_info.alarm_info[0].alarm_param = (char*)malloc(ARG_LEN);
-			strcpy((char*)mydev_command_info.alarm_info[0].alarm_param ,arg_arr[7]);
-			if(atoi(arg_arr[8])==0)
-			{
-				mydev_command_info.alarm_info[0].subdev_id = NULL;
-			}
-			else
-			{
-				mydev_command_info.alarm_info[0].subdev_id = (egsip_subdev_id *)malloc(sizeof(egsip_subdev_id));
-				strcpy(mydev_command_info.alarm_info[0].subdev_id->mac,user_dev->dev_info.mac);
-				mydev_command_info.alarm_info[0].subdev_id->subdev_type = atoi(arg_arr[8]);
-				mydev_command_info.alarm_info[0].subdev_id->subdev_num = 1;
-				egsip_log_debug("Parse complete, subdevid=[%04d%s%04d]",mydev_command_info.alarm_info[0].subdev_id->subdev_type,
-					mydev_command_info.alarm_info[0].subdev_id->mac,mydev_command_info.alarm_info[0].subdev_id->subdev_num);
-			}
-			egsip_log_info("Parse devtype:[%d] cmd comlete alarm_param=[%s]\n",user_dev->dev_info.dev_type,mydev_command_info.alarm_info[0].alarm_param);
-			ret = camera_alarm_report(&mydev_command_info);
-			egsip_log_info("camera_alarm_report:ret = [%d]\n",ret);
+			camera_alarm_report_by_arg(&user_dev->dev_info, arg_arr, used_count);
 		}
 		else
 		{

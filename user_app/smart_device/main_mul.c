@@ -40,7 +40,6 @@ void* socket_send_short_fn(void* arg)
 	return 0;
 }
 
-
 int main(int argc, char * argv [ ])
 {
 	EGSIP_RET_CODE ret = EGSIP_RET_ERROR;

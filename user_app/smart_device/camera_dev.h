@@ -4,6 +4,9 @@
 #include <egsip_sdk.h>
 #include <egsip_util.h>
 #include <camera/egsip_camera.h>
+
+#include "myProtocol.h"
+
 #define  MAX_COMMAND 5   //每个IPC一次最多发送5条告警
 
 typedef struct _camera_command_info
@@ -28,7 +31,8 @@ int camera_del();
 // 设备上报报警函数
 void camera_alarm_report_by_id(int handle);
 int camera_alarm_report_by_file(char *arg);
-int camera_alarm_report(camera_command_info *mydev_command_info);
+int camera_alarm_report_by_arg(egsip_dev_info *dev_info,char (*arg_arr)[ARG_LEN],int used_count);
+//int camera_alarm_report(camera_command_info *mydev_command_info);
 
 
 // 设备状态回调函数

@@ -230,6 +230,6 @@ void DevMsgAck(int code,char* msg)
 			break;
 		}
 	}
-	egsip_log_debug("pid:[%d] DevMsgAck=[%d]\n",getpid(),ret);
+	egsip_log_debug("pid:[%d] global_ack_type=[%d] ret=[%d]\n",getpid(),global_ack_type,ret);
 }
 

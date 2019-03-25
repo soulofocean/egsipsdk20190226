@@ -552,6 +552,33 @@ int doorphone_alarm_report(doorphone_command_info *mydev_command_info)
     }
     return 0;
 }
+int doorphone_alarm_report_by_arg(egsip_dev_info *dev_info,char (*arg_arr)[ARG_LEN],int used_count)
+{
+	//alarm [EventType] [SubdevType] [DESC] [ImgUrl] [UsetID] [UserType]
+	//dev_ctl 0 0 alarm 0 3046 HD_DOORPHONE0 1.jpg 77550003 2011
+	int ret = 0;
+	egsip_log_info("Parse devtype:[%d] cmd\n",dev_info->dev_type);
+	doorphone_command_info  mydev_command_info;
+	memset(&mydev_command_info, 0 ,sizeof(mydev_command_info));
+	mydev_command_info.alarm_count = 1;
+	mydev_command_info.alarm_info[0].event_type = atoi(arg_arr[1]);
+	mydev_command_info.alarm_info[0].sub_dev.subdev_type = atoi(arg_arr[2]);
+	strncpy(mydev_command_info.alarm_info[0].sub_dev.mac,dev_info->mac
+		,MinSize(sizeof(mydev_command_info.alarm_info[0].sub_dev.mac)-1, strlen(dev_info->mac)));
+	mydev_command_info.alarm_info[0].sub_dev.subdev_num = 1;
+	get_current_time_str(1, mydev_command_info.alarm_info[0].event_time);
+	strncpy(mydev_command_info.alarm_info[0].desc,arg_arr[3]
+		,MinSize(sizeof(mydev_command_info.alarm_info[0].desc)-1, strlen(arg_arr[3])));
+	strncpy(mydev_command_info.alarm_info[0].pic_url,arg_arr[4]
+		,MinSize(sizeof(mydev_command_info.alarm_info[0].pic_url)-1, strlen(arg_arr[4])));
+	strncpy(mydev_command_info.alarm_info[0].user_id,arg_arr[5]
+		,MinSize(sizeof(mydev_command_info.alarm_info[0].user_id)-1, strlen(arg_arr[5])));
+	mydev_command_info.alarm_info[0].user_type  =atoi(arg_arr[6]);
+	egsip_log_info("Parse devtype:[%d] cmd comlete\n",dev_info->dev_type);
+	ret = doorphone_alarm_report(&mydev_command_info);
+	egsip_log_info("doorphone_alarm_report:ret = [%d]\n",ret);
+	return ret;
+}
 
 void doorphone_call_res_cb(int handle, int sess_id, EGSIP_RET_CODE ret, egsip_dev_call_info *call_info)
 {

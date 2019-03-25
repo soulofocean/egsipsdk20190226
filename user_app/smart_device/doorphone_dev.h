@@ -4,7 +4,7 @@
 #include <egsip_sdk.h>
 #include <egsip_util.h>
 #include <enter_machine/egsip_enter_machine.h>
-
+#include "myProtocol.h"
 
 #define  MAX_CERT  512 //最多保存512个凭证条目
 
@@ -46,7 +46,8 @@ void mydev_init_doorphone();
 
 // 设备上报报警函数
 int doorphone_alarm_report_by_file(char* arg);
-int doorphone_alarm_report(doorphone_command_info *mydev_command_info);
+int doorphone_alarm_report_by_arg(egsip_dev_info *dev_info,char (*arg_arr)[ARG_LEN],int used_count);
+//int doorphone_alarm_report(doorphone_command_info *mydev_command_info);
 
 // 设备状态回调函数
 void doorphone_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_info);

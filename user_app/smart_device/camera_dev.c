@@ -283,6 +283,48 @@ int camera_alarm_report(camera_command_info *mydev_command_info)
     }
     return 0;
 }
+int camera_alarm_report_by_arg(egsip_dev_info *dev_info,char (*arg_arr)[ARG_LEN],int used_count)
+{
+	//alarm [Piority] [Method] [DESC] [Longitude] [Latitude] [AlarmType] [alarm_param] [SubdevType]
+	//dev_ctl 0 0 alarm 2 5 HD_IPC0 17.17 18.18 12 CHINA-1 0
+	//dev_ctl 0 0 alarm 2 5 HD_IPC0 17.17 18.18 12 CHINA-1 3001
+	int ret = 0;
+	egsip_log_info("Parse devtype:[%d] cmd\n",dev_info->dev_type);
+	camera_command_info  mydev_command_info;
+	memset(&mydev_command_info, 0 ,sizeof(mydev_command_info));
+	mydev_command_info.alarm_count = 1;
+	mydev_command_info.alarm_info[0].priority = atoi(arg_arr[1]);
+	get_current_time_str(1, mydev_command_info.alarm_info[0].time);//获取time
+	mydev_command_info.alarm_info[0].method = atoi(arg_arr[2]);
+	strncpy(mydev_command_info.alarm_info[0].desc ,arg_arr[3],
+		MinSize(sizeof(mydev_command_info.alarm_info[0].desc)-1, strlen(arg_arr[3])));
+	mydev_command_info.alarm_info[0].longitude = atof(arg_arr[4]);
+	mydev_command_info.alarm_info[0].latitude = atof(arg_arr[5]);
+	mydev_command_info.alarm_info[0].alarm_type = atoi(arg_arr[6]);
+	mydev_command_info.alarm_info[0].alarm_param = (char*)malloc(ARG_LEN);
+	if(mydev_command_info.alarm_info[0].alarm_param != NULL)
+	{
+		memset(mydev_command_info.alarm_info[0].alarm_param,0,ARG_LEN);
+	}
+	strncpy((char*)mydev_command_info.alarm_info[0].alarm_param ,arg_arr[7],MinSize(ARG_LEN-1, strlen(arg_arr[7])));
+	if(atoi(arg_arr[8])==0)
+	{
+		mydev_command_info.alarm_info[0].subdev_id = NULL;
+	}
+	else
+	{
+		mydev_command_info.alarm_info[0].subdev_id = (egsip_subdev_id *)malloc(sizeof(egsip_subdev_id));
+		strcpy(mydev_command_info.alarm_info[0].subdev_id->mac,dev_info->mac);
+		mydev_command_info.alarm_info[0].subdev_id->subdev_type = atoi(arg_arr[8]);
+		mydev_command_info.alarm_info[0].subdev_id->subdev_num = 1;
+		egsip_log_debug("Parse complete, subdevid=[%04d%s%04d]",mydev_command_info.alarm_info[0].subdev_id->subdev_type,
+			mydev_command_info.alarm_info[0].subdev_id->mac,mydev_command_info.alarm_info[0].subdev_id->subdev_num);
+	}
+	egsip_log_info("Parse devtype:[%d] cmd comlete alarm_param=[%s]\n",dev_info->dev_type,mydev_command_info.alarm_info[0].alarm_param);
+	ret = camera_alarm_report(&mydev_command_info);
+	egsip_log_info("camera_alarm_report:ret = [%d]\n",ret);
+	return ret;
+}
 
 void *camera_input_test_task_fn(void *arg)
 {
