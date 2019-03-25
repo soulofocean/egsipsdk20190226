@@ -306,7 +306,7 @@ int camera_alarm_report_by_arg(egsip_dev_info *dev_info,char (*arg_arr)[ARG_LEN]
 	{
 		memset(mydev_command_info.alarm_info[0].alarm_param,0,ARG_LEN);
 	}
-	strncpy((char*)mydev_command_info.alarm_info[0].alarm_param ,arg_arr[7],MinSize(ARG_LEN-1, strlen(arg_arr[7])));
+	strncpy((char*)mydev_command_info.alarm_info[0].alarm_param ,arg_arr[7],MinSize(sizeof(char)*(ARG_LEN-1), strlen(arg_arr[7])));
 	if(atoi(arg_arr[8])==0)
 	{
 		mydev_command_info.alarm_info[0].subdev_id = NULL;

@@ -876,7 +876,6 @@ static int mydev_create_single(user_dev_info *user_dev)
             user_dev->dev_req_if_tbl = (void *)&g_doorphone_req_if_tbl;
             srv_req_cb_len = sizeof(g_doorphone_srv_req_cb_tbl);
             dev_req_if_len = sizeof(g_doorphone_req_if_tbl);
-			g_doorphone_dev_info = user_dev->dev_info;
             break;
         }
 		case EGSIP_TYPE_CAMERA:
@@ -886,7 +885,6 @@ static int mydev_create_single(user_dev_info *user_dev)
             user_dev->dev_req_if_tbl = (void *)&g_camera_req_if_tbl;
             srv_req_cb_len = sizeof(g_camera_srv_req_cb_tbl);
             dev_req_if_len = sizeof(g_camera_req_if_tbl);
-			g_camera_dev_info = user_dev->dev_info;
 		}
         default :
         {
@@ -929,6 +927,11 @@ static int mydev_create_single(user_dev_info *user_dev)
 	if(user_dev->dev_info.dev_type == EGSIP_TYPE_ENTRA_MACHINE)
 	{
 		g_doorphone_dev_handle = user_dev->dev_handle;
+		g_doorphone_dev_info = user_dev->dev_info;
+	}
+	if(user_dev->dev_info.dev_type == EGSIP_TYPE_CAMERA)
+	{
+		g_camera_dev_info = user_dev->dev_info;
 	}
     return EGSIP_RET_SUCCESS;
 }
