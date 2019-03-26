@@ -48,6 +48,8 @@ void mydev_init_doorphone();
 int doorphone_alarm_report_by_file(char* arg);
 int doorphone_alarm_report_by_arg(egsip_dev_info *dev_info,char (*arg_arr)[ARG_LEN],int used_count);
 //int doorphone_alarm_report(doorphone_command_info *mydev_command_info);
+//呼叫电梯
+int doorphone_call_lift_by_arg(int dev_handle,char (*arg_arr)[ARG_LEN],int used_count);
 
 // 设备状态回调函数
 void doorphone_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_info);
