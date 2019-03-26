@@ -726,13 +726,13 @@ int check_dev_ctl_arg(char (*arg_arr)[ARG_LEN],unsigned int *dev_arr, int dev_ar
 		}
 	}
 	//校验命令是否存在
-	if(strncmp(arg_arr[3], "alarm", strlen("alarm")) != 0
-		&& strncmp(arg_arr[3], "acktype", strlen("acktype")) != 0
-		&& strncmp(arg_arr[3], "calllift", strlen("calllift")) != 0)
-	{
-		sprintf(str_tmp,"Invalid match cmd [%s]",arg_arr[3]);
-		ret = -1;
-	}
+//	if(strncmp(arg_arr[3], "alarm", strlen("alarm")) != 0
+//		&& strncmp(arg_arr[3], "acktype", strlen("acktype")) != 0
+//		&& strncmp(arg_arr[3], "calllift", strlen("calllift")) != 0)
+//	{
+//		sprintf(str_tmp,"Invalid match cmd [%s]",arg_arr[3]);
+//		ret = -1;
+//	}
 	return ret;
 }
 //向目标为dest_type和dest_offset-1的子设备发送buff中的信息
@@ -767,7 +767,7 @@ int processUploadInfo(user_dev_info *user_dev,char * input_req_cmd)
 {
 	egsip_log_info("input_req_cmd = %s\n",input_req_cmd);
 	EGSIP_RET_CODE ret = EGSIP_RET_SUCCESS;
-	ret = user_dev_get_type(&s_mydev_dev_list_head, user_dev->dev_info.dev_type, &user_dev);
+	//ret = user_dev_get_type(&s_mydev_dev_list_head, user_dev->dev_info.dev_type, &user_dev);
 	//对带参数的命令进行参数拆分
 	char arg_arr[ARG_ARR_COUNT][ARG_LEN];
 	int used_count;
@@ -776,44 +776,72 @@ int processUploadInfo(user_dev_info *user_dev,char * input_req_cmd)
 	//为了兼容下面代码，将原命令拷贝回来
 	memset(input_req_cmd,0,MQ_INFO_BUFF);
 	strcpy(input_req_cmd,arg_arr[0]);
-	if(strcmp(input_req_cmd, "alarm") == 0)
-    {
-		if(user_dev->dev_info.dev_type == EGSIP_TYPE_ENTRA_MACHINE)
-		{
-			ret = doorphone_alarm_report_by_arg(&user_dev->dev_info, arg_arr, used_count);
-		}
-		else if(user_dev->dev_info.dev_type == EGSIP_TYPE_CAMERA)
-		{
-			ret = camera_alarm_report_by_arg(&user_dev->dev_info, arg_arr, used_count);
-		}
-		else
-		{
-			egsip_log_error("Not support dev type [%d] in [%s] cmd\n",user_dev->dev_info.dev_type,input_req_cmd);
-			return EGSIP_RET_NO_SURPORT;
-		}
-    }
-	else if(strcmp(input_req_cmd,"calllift") == 0)
+	char msgTmp[MQ_INFO_BUFF] = {0};
+	switch (user_dev->dev_info.dev_type)
 	{
-		if(user_dev->dev_info.dev_type == EGSIP_TYPE_ENTRA_MACHINE)
+		case EGSIP_TYPE_ENTRA_MACHINE:
 		{
-			ret = doorphone_call_lift_by_arg(user_dev->dev_handle,arg_arr, used_count);
+			if(strcmp(input_req_cmd, "acktype") == 0)
+			{
+				global_ack_type = atoi(arg_arr[1]);
+				egsip_log_debug("global_ack_type = [%d]",global_ack_type);
+			}
+			else if(strcmp(input_req_cmd, "alarm") == 0)
+			{
+				ret = doorphone_alarm_report_by_arg(&user_dev->dev_info, arg_arr, used_count);
+			}
+			else if(strcmp(input_req_cmd,"calllift") == 0)
+			{
+				ret = doorphone_call_lift_by_arg(user_dev->dev_handle,arg_arr, used_count);
+			}
+			else if(strcmp(input_req_cmd,"opendoor") == 0)
+			{
+				ret = doorphone_open_door_by_arg(user_dev->dev_handle, &user_dev->dev_info, arg_arr, used_count);
+			}
+			else if(strcmp(input_req_cmd,"record") == 0)
+			{
+				ret = doorphone_record_report_by_arg(user_dev->dev_handle, &user_dev->dev_info, arg_arr, used_count);
+			}
+			else
+			{
+				//egsip_log_error("Not support cmd [%s] in dev_type [%d]\n",input_req_cmd,user_dev->dev_info.dev_type);
+				snprintf(msgTmp,MQ_INFO_BUFF-1,"Not support cmd [%s] in dev_type [%d]",input_req_cmd,user_dev->dev_info.dev_type);
+				ret = EGSIP_RET_NO_SURPORT;
+			}
+			break;
 		}
-		else
+		case EGSIP_TYPE_CAMERA:
 		{
-			egsip_log_error("Not support dev type [%d] in [%s] cmd\n",user_dev->dev_info.dev_type,input_req_cmd);
-			return EGSIP_RET_NO_SURPORT;
+			if(strcmp(input_req_cmd, "acktype") == 0)
+			{
+				global_ack_type = atoi(arg_arr[1]);
+				egsip_log_debug("global_ack_type = [%d]",global_ack_type);
+			}
+			else if(strcmp(input_req_cmd, "alarm") == 0)
+			{
+				ret = camera_alarm_report_by_arg(&user_dev->dev_info, arg_arr, used_count);
+			}
+			else
+			{
+				//egsip_log_error("Not support cmd [%s] in dev_type [%d]\n",input_req_cmd,user_dev->dev_info.dev_type);
+				snprintf(msgTmp,MQ_INFO_BUFF-1,"Not support cmd [%s] in dev_type [%d]",input_req_cmd,user_dev->dev_info.dev_type);
+				ret = EGSIP_RET_NO_SURPORT;
+			}
+			break;
+		}
+		default:
+		{
+			//egsip_log_error("Not support dev type [%d]\n",user_dev->dev_info.dev_type);
+			snprintf(msgTmp,MQ_INFO_BUFF-1,"Not support dev type [%d]",user_dev->dev_info.dev_type);
+			ret = EGSIP_RET_NO_SURPORT;
+			break;
 		}
 	}
-	else if(strcmp(input_req_cmd, "acktype") == 0)
+	if(ret != EGSIP_RET_SUCCESS)
 	{
-		global_ack_type = atoi(arg_arr[1]);
-		egsip_log_debug("global_ack_type = [%d]",global_ack_type);
+		egsip_log_error("%s\n",msgTmp);
+		//DevMsgAck(ret,msgTmp);
 	}
-    else
-    {
-        egsip_log_user("no found req(%s), skip.\n", input_req_cmd);
-		ret = EGSIP_RET_ERROR;
-    }
 	return ret;
 }
 

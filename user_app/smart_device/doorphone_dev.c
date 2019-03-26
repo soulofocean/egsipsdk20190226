@@ -898,7 +898,64 @@ int doorphone_open_door(void *arg)
 
     return EGSIP_RET_SUCCESS;
 }
+int doorphone_open_door_by_arg(int dev_handle, egsip_dev_info *dev_info,char (*arg_arr)[ARG_LEN],int used_count)
+{
+	//opendoor [sessionID] [credence_no] [dir:0入1出] [type]
+	int sess_id = atoi(arg_arr[1]);
+	int i = 0;
+	for(i=0;i<MAX_CERT;i++)
+	{
+		if(memcmp(arg_arr[2], mydev_cert_pa[i].cert_param.credence_no, strlen(arg_arr[2])) == 0)
+		{
+			//实现开门操作
+			//门禁记录上报
+			egsip_acs_record_type record;
+			record.type 	   = atoi(arg_arr[4]);
+			memcpy(record.user_id, mydev_cert_pa[i].cert_param.user_id, sizeof(record.user_id));
+			record.user_type   = mydev_cert_pa[i].cert_param.user_type;
+			memcpy(record.sub_dev_id, mydev_cert_pa[i].cert_param.sub_dev[0].id, sizeof(record.sub_dev_id));
+			get_current_time_str(0, record.time);
+			memcpy(record.pic_url, "test/1.jpg", sizeof(record.pic_url));
+			record.pass_type   = atoi(arg_arr[3]);
+			memcpy(record.credence_no, arg_arr[2], sizeof(record.credence_no));
+			doorphone_record_report(dev_handle, sess_id, &record);
 
+			break;
+		}
+	}
+	char msgTmp[MQ_INFO_BUFF] = {0};
+	int ret = 0;
+	if(i < MAX_CERT)
+	{
+		snprintf(msgTmp,MQ_INFO_BUFF-1,"[%s] open door sucess.\n", arg_arr[2]);
+		ret = EGSIP_RET_SUCCESS;
+		//egsip_log_debug("[%s] open door sucess.\n", arg_arr[2]);
+	}
+	else
+	{
+		snprintf(msgTmp,MQ_INFO_BUFF-1,"[%s] open door fail.\n", arg_arr[2]);
+		ret = EGSIP_RET_DATA_ERROR;
+		//egsip_log_debug("[%s] open door fail.\n", arg_arr[2]);
+	}
+	DevMsgAck(ret, msgTmp);
+	return ret;
+}
+int doorphone_record_report_by_arg(int dev_handle, egsip_dev_info *dev_info,char (*arg_arr)[ARG_LEN],int used_count)
+{
+	//record [sessionID] [type] [user_id] [user_type] [sub_dev_id] [pic_url] [pass_type:0入1出失败默认为0] [credence_no]
+	int sess_id = atoi(arg_arr[1]);
+	egsip_acs_record_type record;
+	record.type = atoi(arg_arr[2]);
+	memcpy(record.user_id, arg_arr[3], sizeof(record.user_id));
+	record.user_type   = atoi(arg_arr[4]);
+	memcpy(record.sub_dev_id, arg_arr[5], sizeof(record.sub_dev_id));
+	get_current_time_str(0, record.time);
+	memcpy(record.pic_url, arg_arr[6], sizeof(record.pic_url));
+	record.pass_type   = atoi(arg_arr[7]);
+	memcpy(record.credence_no, arg_arr[8], sizeof(record.credence_no));
+	int ret = g_doorphone_req_if_tbl.record_report_if(dev_handle,sess_id,doorphone_record_report_cb,&record);
+	return ret;
+}
 
 void *doorphone_input_test_task_fn(void *arg)
 {
