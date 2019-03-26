@@ -323,6 +323,7 @@ int camera_alarm_report_by_arg(egsip_dev_info *dev_info,char (*arg_arr)[ARG_LEN]
 	egsip_log_info("Parse devtype:[%d] cmd comlete alarm_param=[%s]\n",dev_info->dev_type,mydev_command_info.alarm_info[0].alarm_param);
 	ret = camera_alarm_report(&mydev_command_info);
 	egsip_log_info("camera_alarm_report:ret = [%d]\n",ret);
+	free(mydev_command_info.alarm_info[0].alarm_param);
 	return ret;
 }
 
