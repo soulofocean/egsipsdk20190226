@@ -7,7 +7,7 @@
 #include<string.h>
 #include "myMQ.h"
 #include "egsip_util.h"
-DEV_MSG_ACK_ENUM global_ack_type = SHORT_ACK;
+DEV_MSG_ACK_ENUM global_ack_type = NO_ACK;
 unsigned int GetMQMsgType(int dev_type,int dev_offset)
 {
 	return (dev_type << DEV_INDEX_OFFSET) + dev_offset;
@@ -205,6 +205,7 @@ int DeleteAllMQ(int max_msg_id)
 void DevMsgAck(int code,char* msg)
 {
 	egsip_log_debug("enter.\n");
+	egsip_log_debug("pid=[%u] code=[%d] msg=[%s]\n",getpid(),code,msg);
 	EGSIP_RET_CODE ret = EGSIP_RET_ERROR;
 	//后续useLongMsg可能扩展成枚举，这里先直接判断
 	switch (global_ack_type)
