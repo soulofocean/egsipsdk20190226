@@ -30,9 +30,8 @@ static int        video_format = 96;
 // 设备状态回调函数实现
 void camera_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_info)
 {
-    egsip_log_debug("enter\n", handle);
-	char msgTmp[1024] = {0}; 
-	sprintf(msgTmp,"handle(%d) status=[%d] desc=[%s]", handle,status,desc_info);
+   char msgTmp[MQ_INFO_BUFF] = {0}; 
+	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"status\"=%d,\"desc\"=\"%s\"}", handle,status,desc_info);
     egsip_log_debug("%s\n", msgTmp);
 	DevMsgAck(status,msgTmp);
     int i;
@@ -63,7 +62,8 @@ void camera_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_
 // 被呼叫的回调函数实现
 EGSIP_RET_CODE camera_called_cb(int handle, int sess_id, egsip_dev_call_info *call_info)
 {
-    egsip_log_debug("handle(%d) sess_id(%d) be invited.\n", handle, sess_id);
+    egsip_log_debug("pid=[%u] enter.\n",getpid());
+	char msgTmp[MQ_INFO_BUFF] = {0}; 
     int i = 0;
     int  ip_len = 0;
     char local_ip[16] = {0};
@@ -100,12 +100,16 @@ EGSIP_RET_CODE camera_called_cb(int handle, int sess_id, egsip_dev_call_info *ca
             break;
         }
     }
+	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_SUCCESS);
+	DevMsgAck(EGSIP_RET_SUCCESS,msgTmp);
     return EGSIP_RET_SUCCESS;
 }
 
 // 流传输开始通知回调函数实现
 EGSIP_RET_CODE camera_stream_started_cb(int handle, int sess_id, EGSIP_DEV_STREAM_TYPE stream_flag)
 {
+	egsip_log_debug("pid=[%u] enter.\n",getpid());
+	char msgTmp[MQ_INFO_BUFF] = {0}; 
     egsip_log_debug("handle(%d) sess_id(%d) start send audio and video frame.\n", handle, sess_id);
     int i = 0;
     for(i=0;i<MAX_USERS;i++)
@@ -116,22 +120,26 @@ EGSIP_RET_CODE camera_stream_started_cb(int handle, int sess_id, EGSIP_DEV_STREA
             break;
         }
     }
-
+	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_SUCCESS);
+	DevMsgAck(EGSIP_RET_SUCCESS,msgTmp);
     return EGSIP_RET_SUCCESS;
 }
 
 // 呼叫被应答回调函数实现
 EGSIP_RET_CODE camera_call_answered_cb(int handle, int sess_id)
 {
-    egsip_log_debug("handle(%d) sess_id(%d)\n", handle, sess_id);
-    
+	egsip_log_debug("pid=[%u] enter.\n",getpid());
+	char msgTmp[MQ_INFO_BUFF] = {0}; 
+    snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_SUCCESS);
+	DevMsgAck(EGSIP_RET_SUCCESS,msgTmp);
     return EGSIP_RET_SUCCESS;
 }
 
 // 呼叫被停止回调函数实现
 EGSIP_RET_CODE  camra_call_stopped_cb(int handle, int sess_id, int status)
 {
-    egsip_log_debug("handle(%d) sess_id(%d)\n", handle, sess_id);
+    egsip_log_debug("pid=[%u] enter.\n",getpid());
+	char msgTmp[MQ_INFO_BUFF] = {0}; 
     int i = 0;
     for(i=0;i<MAX_USERS;i++)
     {
@@ -141,29 +149,39 @@ EGSIP_RET_CODE  camra_call_stopped_cb(int handle, int sess_id, int status)
             break;
         }
     }
-
+	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_SUCCESS);
+	DevMsgAck(EGSIP_RET_SUCCESS,msgTmp);
     return EGSIP_RET_SUCCESS;
 }
 
 EGSIP_RET_CODE camera_device_upgrade_cb(int handle, int sess_id, char *file_url, char *ftp_addr)
 {
+	egsip_log_debug("pid=[%u] enter.\n",getpid());
+	char msgTmp[MQ_INFO_BUFF] = {0}; 
     if ((file_url == NULL) || (ftp_addr == NULL))
     {
         egsip_log_debug("handle(%d) sess_id(%d) upgrade fail.\n", handle, sess_id);
+		snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_DATA_ERROR);
+		DevMsgAck(EGSIP_RET_DATA_ERROR,msgTmp);
         return EGSIP_RET_DATA_ERROR;
     }
 
     egsip_log_debug("handle:%d sess_id:%d file_url:%s ftp_addr:%s upgrade success\n", 
                      handle, sess_id, file_url, ftp_addr);
-
+	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_SUCCESS);
+	DevMsgAck(EGSIP_RET_SUCCESS,msgTmp);
     return EGSIP_RET_SUCCESS;
 }
 
 EGSIP_RET_CODE camera_set_pic_storage_cb(int handle, int sess_id, char *http_url)
 {
+	egsip_log_debug("pid=[%u] enter.\n",getpid());
+	char msgTmp[MQ_INFO_BUFF] = {0}; 
     if ((http_url == NULL) && (strlen(http_url) > 127))
     {
         egsip_log_debug("handle(%d) sess_id(%d) url_length(%d) pic info fail.\n", handle, sess_id, strlen(http_url));
+		snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_DATA_ERROR);
+		DevMsgAck(EGSIP_RET_DATA_ERROR,msgTmp);
         return EGSIP_RET_DATA_ERROR;
     }
 
@@ -179,12 +197,15 @@ EGSIP_RET_CODE camera_set_pic_storage_cb(int handle, int sess_id, char *http_url
     }
     
     egsip_log_debug("handle:%d sess_id:%d http_url:%s\n", handle, sess_id, http_url);
+	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_SUCCESS);
+	DevMsgAck(EGSIP_RET_SUCCESS,msgTmp);
     return EGSIP_RET_SUCCESS;
 }
 
 EGSIP_RET_CODE camera_get_pic_storage_cb(int handle, int sess_id, char *http_url)
 {
-
+	egsip_log_debug("pid=[%u] enter.\n",getpid());
+	char msgTmp[MQ_INFO_BUFF] = {0}; 
     int i = 0;
     for(i=0;i<MAX_USERS;i++)
     {
@@ -200,19 +221,17 @@ EGSIP_RET_CODE camera_get_pic_storage_cb(int handle, int sess_id, char *http_url
     }
 
     egsip_log_debug("handle:%d sess_id:%d http_url:%s\n", handle, sess_id, http_url);
+	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_SUCCESS);
+	DevMsgAck(EGSIP_RET_SUCCESS,msgTmp);
     return EGSIP_RET_SUCCESS;
 }
 
 void camera_alarm_report_res_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
 {
-   egsip_log_debug("enter.\n");
-   egsip_log_debug("handle(%d).\n", handle);
-   egsip_log_debug("req_id(%d).\n", msg_id);
-   egsip_log_debug("ret(%d).\n",ret);
-   char msgTmp[1024] = {0}; 
-   sprintf(msgTmp,"handle(%d) msg_id=[%d] ret=[%d]", handle,msg_id,ret);
-   egsip_log_debug("%s\n", msgTmp);
-   DevMsgAck(ret, msgTmp);
+	egsip_log_debug("pid=[%u] enter.\n",getpid());
+   	char msgTmp[MQ_INFO_BUFF] = {0}; 
+   	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"msg_id\"=%d,\"ret\"=%d", handle,msg_id,ret);
+   	DevMsgAck(ret,msgTmp);
 }
 
 int camera_alarm_report_by_file(char *arg)

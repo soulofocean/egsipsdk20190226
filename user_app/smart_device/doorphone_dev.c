@@ -121,10 +121,10 @@ void doorphone_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *de
 EGSIP_RET_CODE doorphone_called_cb(int handle, int sess_id, egsip_dev_call_info *call_info)
 {
 	egsip_log_debug("pid=[%u] enter.\n",getpid());
+	char msgTmp[MQ_INFO_BUFF] = {0}; 
     if (call_info == NULL)
     {
         egsip_log_debug("handle(%d) sess_id(%d) called fail.\n", handle, sess_id);
-		char msgTmp[MQ_INFO_BUFF] = {0}; 
 		snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d}", handle,sess_id,EGSIP_RET_DATA_ERROR);
 		DevMsgAck(EGSIP_RET_DATA_ERROR,msgTmp);
         return EGSIP_RET_DATA_ERROR;
@@ -154,7 +154,6 @@ EGSIP_RET_CODE doorphone_called_cb(int handle, int sess_id, egsip_dev_call_info 
             break;
         }
     }
-	char msgTmp[MQ_INFO_BUFF] = {0}; 
 	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_SUCCESS);
 	DevMsgAck(EGSIP_RET_SUCCESS,msgTmp);
     return EGSIP_RET_SUCCESS;
