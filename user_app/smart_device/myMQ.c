@@ -212,7 +212,9 @@ void DevMsgAck(int code,char* msg)
 	{
 		case LONG_ACK:
 		{
-			ret = PutSendMQ(msg);
+			char jsonmsg[MQ_INFO_BUFF] = {0};
+			snprintf(jsonmsg,MQ_INFO_BUFF-1,"{\"code\":%d,\"desc\":\"%s\"}",code,msg);
+			ret = PutSendMQ(jsonmsg);
 			break;
 		}
 		case SHORT_ACK:
