@@ -945,7 +945,7 @@ int doorphone_open_door_by_arg(int dev_handle, egsip_dev_info *dev_info,char (*a
 int doorphone_record_report_by_arg(int dev_handle, egsip_dev_info *dev_info,char (*arg_arr)[ARG_LEN],int used_count)
 {
 	//record [sessionID] [type] [user_id] [user_type] [sub_dev_type] [pic_url] [pass_type:0入1出失败默认为0] [credence_no]
-	//dev_ctl 2011 0 record 111222 2 1234567890 1 3402s test/1.jpg 1 aaaaaaaaaabbbbbbbbbbbb
+	//dev_ctl 2011 0 record 111222 2 1234567890 1 3402 test/1.jpg 1 aaaaaaaaaabbbbbbbbbbbb
 	int sess_id = atoi(arg_arr[1]);
 	egsip_acs_record_type record;
 	record.type = atoi(arg_arr[2]);
