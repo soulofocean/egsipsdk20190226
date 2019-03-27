@@ -821,6 +821,7 @@ int doorphone_call_lift(char *arg)
 int doorphone_call_lift_by_arg(int dev_handle,char (*arg_arr)[ARG_LEN],int used_count)
 {
 	//calllift [DIR:1上2下] [sessionID]
+	//dev_ctl 2011 0 calllift 1 7891
     int dir = atoi(arg_arr[1]);
 	int sess_id = atoi(arg_arr[2]);
 	int dev_num = 0;
@@ -901,6 +902,7 @@ int doorphone_open_door(void *arg)
 int doorphone_open_door_by_arg(int dev_handle, egsip_dev_info *dev_info,char (*arg_arr)[ARG_LEN],int used_count)
 {
 	//opendoor [sessionID] [credence_no] [dir:0入1出] [type]
+	//dev_ctl 2011 0 opendoor 111222 aaaaaaaaaabbbbbbbbbbbb 0 2
 	int sess_id = atoi(arg_arr[1]);
 	int i = 0;
 	for(i=0;i<MAX_CERT;i++)
@@ -927,13 +929,13 @@ int doorphone_open_door_by_arg(int dev_handle, egsip_dev_info *dev_info,char (*a
 	int ret = 0;
 	if(i < MAX_CERT)
 	{
-		snprintf(msgTmp,MQ_INFO_BUFF-1,"[%s] open door sucess.\n", arg_arr[2]);
+		snprintf(msgTmp,MQ_INFO_BUFF-1,"[%s] open door sucess.", arg_arr[2]);
 		ret = EGSIP_RET_SUCCESS;
 		//egsip_log_debug("[%s] open door sucess.\n", arg_arr[2]);
 	}
 	else
 	{
-		snprintf(msgTmp,MQ_INFO_BUFF-1,"[%s] open door fail.\n", arg_arr[2]);
+		snprintf(msgTmp,MQ_INFO_BUFF-1,"[%s] open door fail.", arg_arr[2]);
 		ret = EGSIP_RET_DATA_ERROR;
 		//egsip_log_debug("[%s] open door fail.\n", arg_arr[2]);
 	}
@@ -942,13 +944,16 @@ int doorphone_open_door_by_arg(int dev_handle, egsip_dev_info *dev_info,char (*a
 }
 int doorphone_record_report_by_arg(int dev_handle, egsip_dev_info *dev_info,char (*arg_arr)[ARG_LEN],int used_count)
 {
-	//record [sessionID] [type] [user_id] [user_type] [sub_dev_id] [pic_url] [pass_type:0入1出失败默认为0] [credence_no]
+	//record [sessionID] [type] [user_id] [user_type] [sub_dev_type] [pic_url] [pass_type:0入1出失败默认为0] [credence_no]
+	//dev_ctl 2011 0 record 111222 2 1234567890 1 3402s test/1.jpg 1 aaaaaaaaaabbbbbbbbbbbb
 	int sess_id = atoi(arg_arr[1]);
 	egsip_acs_record_type record;
 	record.type = atoi(arg_arr[2]);
 	memcpy(record.user_id, arg_arr[3], sizeof(record.user_id));
 	record.user_type   = atoi(arg_arr[4]);
-	memcpy(record.sub_dev_id, arg_arr[5], sizeof(record.sub_dev_id));
+	//获取完整的子设备ID
+	snprintf(record.sub_dev_id,sizeof(record.sub_dev_id),"%4s%12s%04d",arg_arr[5],dev_info->mac,1);
+	//memcpy(record.sub_dev_id, arg_arr[5], sizeof(record.sub_dev_id));
 	get_current_time_str(0, record.time);
 	memcpy(record.pic_url, arg_arr[6], sizeof(record.pic_url));
 	record.pass_type   = atoi(arg_arr[7]);
