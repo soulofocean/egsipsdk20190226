@@ -33,7 +33,7 @@ void camera_status_callback(int handle, EGSIP_DEV_STATUS_CODE status,char *desc_
    char msgTmp[MQ_INFO_BUFF] = {0}; 
 	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"status\"=%d,\"desc\"=\"%s\"}", handle,status,desc_info);
     egsip_log_debug("%s\n", msgTmp);
-	DevMsgAck(status,msgTmp);
+	DevMsgAck(status,__func__,msgTmp);
     int i;
     switch(status)
     {
@@ -101,7 +101,7 @@ EGSIP_RET_CODE camera_called_cb(int handle, int sess_id, egsip_dev_call_info *ca
         }
     }
 	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_SUCCESS);
-	DevMsgAck(EGSIP_RET_SUCCESS,msgTmp);
+	DevMsgAck(EGSIP_RET_SUCCESS,__func__,msgTmp);
     return EGSIP_RET_SUCCESS;
 }
 
@@ -121,7 +121,7 @@ EGSIP_RET_CODE camera_stream_started_cb(int handle, int sess_id, EGSIP_DEV_STREA
         }
     }
 	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_SUCCESS);
-	DevMsgAck(EGSIP_RET_SUCCESS,msgTmp);
+	DevMsgAck(EGSIP_RET_SUCCESS,__func__,msgTmp);
     return EGSIP_RET_SUCCESS;
 }
 
@@ -131,7 +131,7 @@ EGSIP_RET_CODE camera_call_answered_cb(int handle, int sess_id)
 	egsip_log_debug("pid=[%u] enter.\n",getpid());
 	char msgTmp[MQ_INFO_BUFF] = {0}; 
     snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_SUCCESS);
-	DevMsgAck(EGSIP_RET_SUCCESS,msgTmp);
+	DevMsgAck(EGSIP_RET_SUCCESS,__func__,msgTmp);
     return EGSIP_RET_SUCCESS;
 }
 
@@ -150,7 +150,7 @@ EGSIP_RET_CODE  camra_call_stopped_cb(int handle, int sess_id, int status)
         }
     }
 	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_SUCCESS);
-	DevMsgAck(EGSIP_RET_SUCCESS,msgTmp);
+	DevMsgAck(EGSIP_RET_SUCCESS,__func__,msgTmp);
     return EGSIP_RET_SUCCESS;
 }
 
@@ -162,14 +162,14 @@ EGSIP_RET_CODE camera_device_upgrade_cb(int handle, int sess_id, char *file_url,
     {
         egsip_log_debug("handle(%d) sess_id(%d) upgrade fail.\n", handle, sess_id);
 		snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_DATA_ERROR);
-		DevMsgAck(EGSIP_RET_DATA_ERROR,msgTmp);
+		DevMsgAck(EGSIP_RET_DATA_ERROR,__func__,msgTmp);
         return EGSIP_RET_DATA_ERROR;
     }
 
     egsip_log_debug("handle:%d sess_id:%d file_url:%s ftp_addr:%s upgrade success\n", 
                      handle, sess_id, file_url, ftp_addr);
 	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_SUCCESS);
-	DevMsgAck(EGSIP_RET_SUCCESS,msgTmp);
+	DevMsgAck(EGSIP_RET_SUCCESS,__func__,msgTmp);
     return EGSIP_RET_SUCCESS;
 }
 
@@ -181,7 +181,7 @@ EGSIP_RET_CODE camera_set_pic_storage_cb(int handle, int sess_id, char *http_url
     {
         egsip_log_debug("handle(%d) sess_id(%d) url_length(%d) pic info fail.\n", handle, sess_id, strlen(http_url));
 		snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_DATA_ERROR);
-		DevMsgAck(EGSIP_RET_DATA_ERROR,msgTmp);
+		DevMsgAck(EGSIP_RET_DATA_ERROR,__func__,msgTmp);
         return EGSIP_RET_DATA_ERROR;
     }
 
@@ -198,7 +198,7 @@ EGSIP_RET_CODE camera_set_pic_storage_cb(int handle, int sess_id, char *http_url
     
     egsip_log_debug("handle:%d sess_id:%d http_url:%s\n", handle, sess_id, http_url);
 	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_SUCCESS);
-	DevMsgAck(EGSIP_RET_SUCCESS,msgTmp);
+	DevMsgAck(EGSIP_RET_SUCCESS,__func__,msgTmp);
     return EGSIP_RET_SUCCESS;
 }
 
@@ -222,7 +222,7 @@ EGSIP_RET_CODE camera_get_pic_storage_cb(int handle, int sess_id, char *http_url
 
     egsip_log_debug("handle:%d sess_id:%d http_url:%s\n", handle, sess_id, http_url);
 	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\"=%d,\"ret\"=%d", handle,sess_id,EGSIP_RET_SUCCESS);
-	DevMsgAck(EGSIP_RET_SUCCESS,msgTmp);
+	DevMsgAck(EGSIP_RET_SUCCESS,__func__,msgTmp);
     return EGSIP_RET_SUCCESS;
 }
 
@@ -231,7 +231,7 @@ void camera_alarm_report_res_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
 	egsip_log_debug("pid=[%u] enter.\n",getpid());
    	char msgTmp[MQ_INFO_BUFF] = {0}; 
    	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"msg_id\"=%d,\"ret\"=%d", handle,msg_id,ret);
-   	DevMsgAck(ret,msgTmp);
+   	DevMsgAck(ret,__func__,msgTmp);
 }
 
 int camera_alarm_report_by_file(char *arg)
