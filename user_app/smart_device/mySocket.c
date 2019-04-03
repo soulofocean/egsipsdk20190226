@@ -20,6 +20,7 @@ static int socket_new_fd;
 
 int socketServerInit(unsigned int myport, unsigned int lisnum, char * serveraddr,int *socketID)
 {
+	egsip_log_debug("enter.\n");
 	int sockfd; 
     struct sockaddr_in my_addr;
 	if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) == -1)   
@@ -57,11 +58,13 @@ int socketServerInit(unsigned int myport, unsigned int lisnum, char * serveraddr
         return -1;  
     }
 	*socketID = sockfd;
+	egsip_log_debug("sockfd=[%d] init complete!\n",sockfd);
 	return 0;
 }
 
 int socketServerLoopRsv(int sockfd)
 {
+	egsip_log_debug("enter.sockfd=[%d]\n",sockfd);
 	socklen_t len;  
     struct sockaddr_in their_addr;   
     char buf[SOCKET_RCV_BUFF + 1];  
