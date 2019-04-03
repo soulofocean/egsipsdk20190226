@@ -823,6 +823,14 @@ int processUploadInfo(user_dev_info *user_dev,char * input_req_cmd)
 				{
 					ret = doorphone_record_report_by_arg(user_dev->dev_handle, &user_dev->dev_info, arg_arr, used_count);
 				}
+				else if(strcmp(input_req_cmd,"call") == 0)
+				{
+					ret = doorphone_call_user_by_arg(user_dev->dev_handle, &user_dev->dev_info, arg_arr, used_count);
+				}
+				else if(strcmp(input_req_cmd,"stopcall") == 0)
+				{
+					ret = doorphone_stop_call_user_by_arg(user_dev->dev_handle, arg_arr, used_count);
+				}
 				else
 				{
 					//egsip_log_error("Not support cmd [%s] in dev_type [%d]\n",input_req_cmd,user_dev->dev_info.dev_type);

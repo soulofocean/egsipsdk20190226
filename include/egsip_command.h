@@ -353,11 +353,11 @@ typedef EGSIP_RET_CODE (*egsip_dev_elevator_control_if)(int handle, int sess_id,
 typedef struct _egsip_intercom_record_report_info
 {
     egsip_call_addr_info call_info;
-    char *invite_time;
+    char invite_time[30];
     int talk_time;
     int answer;
     int lock;
-    char *url_pic;
+    char url_pic[100];
 }egsip_intercom_record_report_info;
 
 typedef void (*egsip_dev_intercom_record_report_res_cb)(int handle, int sess_id, EGSIP_RET_CODE ret);

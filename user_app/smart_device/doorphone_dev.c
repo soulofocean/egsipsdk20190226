@@ -58,9 +58,9 @@ void doorphone_call_report_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
 EGSIP_RET_CODE  doorphone_call_report(int handle, int sess_id, egsip_intercom_record_report_info *record)
 {
     egsip_log_info("report info\n");
-    g_doorphone_req_if_tbl.intercom_report_if(handle, sess_id, doorphone_call_report_cb, record);
-
-    return 0;
+    int ret = g_doorphone_req_if_tbl.intercom_report_if(handle, sess_id, doorphone_call_report_cb, record);
+	egsip_log_debug("intercom_report_if ret = [%d]\n",ret);
+    return ret;
 }
 
 void doorphone_lock_report_cb(int handle, int msg_id, EGSIP_RET_CODE ret)
@@ -208,11 +208,11 @@ EGSIP_RET_CODE  doorphone_call_stopped_cb(int handle, int sess_id, int status)
             memset(&open_record, 0, sizeof(open_record));
 
             memcpy(&open_record.call_info, &mydev_status[i].call_info.other_addr, sizeof(egsip_call_addr_info));
-            open_record.invite_time = invite_time;
+            strncpy(open_record.invite_time,invite_time,sizeof(open_record.invite_time)-1);
             open_record.talk_time = 30;
             open_record.answer = 1;
             open_record.lock = 1;
-            open_record.url_pic = url_pic;
+            strncpy(open_record.url_pic,url_pic,sizeof(open_record.url_pic)-1);
 
             //doorphone_call_report(mydev_status[i].handle, (mydev_status[i].sess_id+1), &open_record);
             break;
@@ -725,6 +725,57 @@ int doorphone_call_user(char *arg)
 
     return 0;
 }
+int doorphone_call_user_by_arg(int dev_handle, egsip_dev_info *dev_info,char (*arg_arr)[ARG_LEN],int used_count)
+{
+	//call [session_id] [call_type(1:管理机 2:围墙机 3:门口机 4:室内机 5:APP)] [call_number]
+	//call 7890 1 99999999
+	//call 7890 4 77550101
+	int  sess_id = atoi(arg_arr[1]);
+    int  dev_num = 0;
+    int  i = 0;
+    int  ip_len = 0;
+    char local_ip[16] = {0};
+
+    for(i=0;i<MAX_USERS;i++)
+    {
+        if(mydev_status[i].using == 0)
+        {
+            dev_num = i;
+            break;
+        }
+    }
+
+    mydev_status[dev_num].handle = dev_handle;
+    mydev_status[dev_num].sess_id = sess_id;
+    mydev_status[dev_num].using = 1;
+    mydev_status[dev_num].dev_call = 1;
+	mydev_status[dev_num].call_info.other_addr.call_dev_type = atoi(arg_arr[2]);
+    snprintf(mydev_status[dev_num].call_info.other_addr.addr_code, sizeof(mydev_status[dev_num].call_info.other_addr.addr_code), "%s", arg_arr[3]);
+    mydev_status[dev_num].call_info.other_addr.dev_number = 1;
+
+    ip_len = strstr(dev_info->local_addr, ":") - dev_info->local_addr;
+    if(ip_len < 16)
+    {
+        strncpy(local_ip, dev_info->local_addr, ip_len);
+    }
+    else
+    {
+        egsip_log_error("get local ip from (%s) failed\n", dev_info->local_addr);
+    }
+
+    mydev_status[dev_num].call_info.caller_recv_audio.enable = 1;
+    snprintf(mydev_status[dev_num].call_info.caller_recv_audio.recv_ip, sizeof(mydev_status[dev_num].call_info.caller_recv_audio.recv_ip), "%s", local_ip); 
+    mydev_status[dev_num].call_info.caller_recv_audio.recv_port = UDP_BASE_PORT;
+    mydev_status[dev_num].call_info.caller_recv_audio.format = 8;
+
+    mydev_status[dev_num].call_info.caller_recv_video.enable = 1;
+    snprintf(mydev_status[dev_num].call_info.caller_recv_video.recv_ip, sizeof(mydev_status[dev_num].call_info.caller_recv_audio.recv_ip), "%s", local_ip); 
+    mydev_status[dev_num].call_info.caller_recv_video.recv_port = UDP_BASE_PORT+2;
+    mydev_status[dev_num].call_info.caller_recv_video.format = video_format;
+
+    return g_doorphone_req_if_tbl.call_if(mydev_status[dev_num].handle, mydev_status[dev_num].sess_id, doorphone_call_res_cb, &(mydev_status[dev_num].call_info));
+
+}
 
 void doorphone_stop_call_res_cb(int handle, int sess_id, EGSIP_RET_CODE ret)
 {
@@ -761,17 +812,45 @@ int doorphone_stop_call_user(char *arg)
             memset(&open_record, 0, sizeof(open_record));
 
             memcpy(&open_record.call_info, &mydev_status[i].call_info.other_addr, sizeof(egsip_call_addr_info));
-            open_record.invite_time = invite_time;
+            strncpy(open_record.invite_time, invite_time,sizeof(open_record.invite_time)-1);
             open_record.talk_time = 30;
             open_record.answer = 1;
             open_record.lock = 1;
-            open_record.url_pic = url_pic;
+            strncpy(open_record.url_pic,url_pic,sizeof(open_record.url_pic)-1);
 
             doorphone_call_report(mydev_status[i].handle, (mydev_status[i].sess_id+1), &open_record);
         }
     }
 
     return 0;
+}
+int doorphone_stop_call_user_by_arg(int dev_handle,char (*arg_arr)[ARG_LEN],int used_count)
+{
+	//stopcall [report_sess_id] [url_pic] [talk_time] [answer] [lock]
+	//stopcall 7891 jpge/test.jpg 30 1 1
+	int i = 0;
+	EGSIP_RET_CODE ret = EGSIP_RET_ERROR;
+    for(i=0;i<MAX_USERS;i++)
+    {
+        if(mydev_status[i].dev_call == 1 && mydev_status[i].handle == dev_handle)
+        {
+            ret = g_doorphone_req_if_tbl.stop_call_if(mydev_status[i].handle, mydev_status[i].sess_id, doorphone_stop_call_res_cb);
+			egsip_log_debug("stop_call_if ret = [%d]\n",ret);
+            egsip_intercom_record_report_info open_record;
+            memset(&open_record, 0, sizeof(open_record));
+            memcpy(&open_record.call_info, &mydev_status[i].call_info.other_addr, sizeof(egsip_call_addr_info));
+			get_current_time_str(0, open_record.invite_time);
+			int sess_id = atoi(arg_arr[1]);
+            strncpy(open_record.url_pic,arg_arr[2],sizeof(open_record.url_pic)-1);
+            open_record.talk_time = atoi(arg_arr[3]);
+            open_record.answer = atoi(arg_arr[4]);
+            open_record.lock = atoi(arg_arr[5]);
+
+            ret = doorphone_call_report(mydev_status[i].handle, sess_id, &open_record);
+        }
+    }
+    return ret;
+	
 }
 
 void doorphone_call_lift_cb(int handle, int sess_id, EGSIP_RET_CODE ret)

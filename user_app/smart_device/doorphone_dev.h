@@ -48,6 +48,8 @@ void mydev_init_doorphone();
 int doorphone_alarm_report_by_file(char* arg);
 int doorphone_alarm_report_by_arg(egsip_dev_info *dev_info,char (*arg_arr)[ARG_LEN],int used_count);
 //int doorphone_alarm_report(doorphone_command_info *mydev_command_info);
+int doorphone_call_user_by_arg(int dev_handle, egsip_dev_info *dev_info,char (*arg_arr)[ARG_LEN],int used_count);
+int doorphone_stop_call_user_by_arg(int dev_handle,char (*arg_arr)[ARG_LEN],int used_count);
 //呼叫电梯
 int doorphone_call_lift_by_arg(int dev_handle,char (*arg_arr)[ARG_LEN],int used_count);
 int doorphone_open_door_by_arg(int dev_handle, egsip_dev_info *dev_info,char (*arg_arr)[ARG_LEN],int used_count);
