@@ -154,7 +154,7 @@ EGSIP_RET_CODE doorphone_called_cb(int handle, int sess_id, egsip_dev_call_info 
             break;
         }
     }
-	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\":%d,\"ret\":%d", handle,sess_id,EGSIP_RET_SUCCESS);
+	snprintf(msgTmp,sizeof(msgTmp)-1,"{\"handle\":%d,\"sess_id\":%d,\"ret\":%d}", handle,sess_id,EGSIP_RET_SUCCESS);
 	DevMsgAck(EGSIP_RET_SUCCESS,__func__,msgTmp);
     return EGSIP_RET_SUCCESS;
 }

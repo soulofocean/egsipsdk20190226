@@ -42,6 +42,7 @@ typedef enum _ipc_wait_enum{
 }IPC_WAIT_ENUM;
 extern DEV_MSG_ACK_ENUM global_ack_type;
 extern long global_msg_type;
+int replace_string(char *result, char *source, const char* oldStr, char *destStr);
 unsigned int GetMQMsgType(int dev_type,int dev_offset);
 unsigned int GetDevType(unsigned int msg_type);
 unsigned int GetDevCount(unsigned int msg_type);

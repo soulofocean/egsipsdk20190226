@@ -17,7 +17,6 @@ size_t MinSize(size_t s1,size_t s2);
 int Update_Dev_Fork_List(unsigned       int arr[], int arrIndex, EGSIP_DEV_TYPE devType, int devCount);
 int my_itoa(int intValue,char *outStr,int str_len);
 int get_current_time_str(int withT,char*outStr);
-int replace_string(char *result, char *source, const char* oldStr, char *destStr);
 int replace_system_time(char *result,char *source);
 int replace_dev_id(char *result,char *source, char *dev_id);
 int replace_sub_dev_id(char *result,char *source, char *sub_dev_id);

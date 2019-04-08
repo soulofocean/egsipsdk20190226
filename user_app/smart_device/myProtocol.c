@@ -59,25 +59,6 @@ int get_current_time_str(int withT,char*outStr)
 	egsip_log_debug("timeStr = [%s]\n",outStr);
 	return 0;
 }
-/*将字符串source中的oldStr子串替换为destStr字串,存放在result中*/
-int replace_string(char *result, char *source, const char* oldStr, char *destStr)
-{
-    char *q=NULL;
-    char *p=NULL;	
-	if(NULL == result || NULL == source || NULL == oldStr || NULL == destStr)
-		return -1;	   
-    p=source;
-    while((q=strstr(p, oldStr))!=NULL)
-    {
-        strncpy(result, p, q-p);
-        result[q-p]= '\0';//very important, must attention!
-        strcat(result, destStr);
-        strcat(result, q+strlen(oldStr));
-        strcpy(p,result);
-    }
-    strcpy(result, p);   
-	return 0;
-}
 int replace_system_time(char *result,char *source)
 {
 	char now[100] = {0};
