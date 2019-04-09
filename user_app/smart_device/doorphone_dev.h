@@ -5,6 +5,7 @@
 #include <egsip_util.h>
 #include <enter_machine/egsip_enter_machine.h>
 #include "myProtocol.h"
+#include "myCommonAPI.h"
 
 #define  MAX_CERT  512 //最多保存512个凭证条目
 

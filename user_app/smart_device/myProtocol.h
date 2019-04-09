@@ -2,38 +2,47 @@
 #define _MYPROTOCOL_H
 #include "myMQ.h"
 #include "egsip_def.h"
+
+#define MQ_SEND_BUFF sizeof(msg_struct)-sizeof(long) //ENQueue_MQ消息的大小
+#define MQ_RSV_BUFF sizeof(msg_struct)				 //DeQueue_MQ消息的大小 必须比ENQueue_MQ的大否则报错
+#define MQ_SEND_BUFF_SHORT sizeof(msg_short_struct) - sizeof(long)
+#define MQ_RSV_BUFF_SHORT sizeof(msg_short_struct)
+#define SOCKET_RSV_MQ_KEY 8887	//接收到的SOCKET消息缓存的MQKEY ftok(".",8) 
+#define SOCKET_SEND_MQ_KEY 9998 //将要通过SOCKET发送出去的MSG的缓存MQKEY ftok(".",9) 
+#define SOCKET_SEND_SHORT_MQ_KEY 6665 //将要通过SOCKET发送出去的SHORT_MSG的缓存MQKEY ftok(".",6) 
+#define SOCKET_RSV_MSG_TYPE 1		//Socket接收到的数据放入MQ默认类型
+#define SOCKET_SEND_MSG_TYPE 2		//Socket发送出去的数据放入MQ默认类型
+#define DEV_INDEX_OFFSET 16			//预留16bit放设备序号，DEVTYPE<<16
+#define DEV_OFFSET_OP 0xFFFF		//和上面的16bits对应
 #define DEV_FORK_LIST_MAX_SIZE 16	//最多支持16种设备
 #define DEV_MAX_COUNT 1000			//每种设备最大数目
-#define ARG_ARR_COUNT 16			//定义Socket接收到的最大参数个数
-#define ARG_LEN 128					//每个参数最大的长度
 extern unsigned int global_fork_us;
 typedef enum _Rsv_Msg_Process_Result{
 	No_Need_Rsp = 0,
 	DSP_MSG = 1,
 	SEND_MSG = 2
 }RsvMsgProcResultEnum;
-unsigned int CombineInt(unsigned int devType, unsigned int devIndex);
-size_t MinSize(size_t s1,size_t s2);
+typedef enum _dev_msg_ack_enum{
+	NO_ACK = 0,
+	SHORT_ACK = 1,
+	LONG_ACK = 2
+}DEV_MSG_ACK_ENUM;
+extern DEV_MSG_ACK_ENUM global_ack_type;
+extern long global_msg_type;
 int Update_Dev_Fork_List(unsigned       int arr[], int arrIndex, EGSIP_DEV_TYPE devType, int devCount);
-int my_itoa(int intValue,char *outStr,int str_len);
-int get_current_time_str(int withT,char*outStr);
-int replace_system_time(char *result,char *source);
-int replace_dev_id(char *result,char *source, char *dev_id);
-int replace_sub_dev_id(char *result,char *source, char *sub_dev_id);
-int replace_dev_type(char *result,char *source, int dev_type);
-int replace_sub_dev_type(char *result,char *source, int sub_dev_type);
-int replace_record_type(char *result,char *source, int record_type);
-int replace_credence_type(char *result,char *source, int credence_type);
-int replace_credence_no(char *result,char *source, char *credence_no);
-int replace_entry_type(char *result,char *source, int entry_type);
-int replace_dev_mac(char *result,char *source, char *dev_mac);
-int replace_gate_open_mode(char *result,char *source, int gate_open_mode);
-int replace_img_path(char *result,char *source, char *img_path);
-int replace_pass_type(char *result,char *source, int pass_type);
+unsigned int GetMQMsgType(int dev_type,int dev_offset);
+unsigned int GetDevType(unsigned int msg_type);
+unsigned int GetDevCount(unsigned int msg_type);
+int PutRsvMQ(msg_struct msgs);
+int PutSendMQ(int code,const char* func_name,char * info);
+int PutSendShortMQ(int status_code);
+int PutDispatchMQ(int dev_type,int dev_index,char* info);
+int PutDispatchNMQ(msg_struct msgs,int put_count);
+int GetRsvMQ(msg_struct *msgbuff);
+int GetSendMQ(msg_struct *msgbuff);
+int GetSendShortMQ(msg_short_struct *msgbuff);
+int GetDispatchMQ(long msgType,msg_struct *msgbuff);
+int DelDispatchMQ(long msgType);
+void DevMsgAck(int code,const char* func_name,char* msg);
 int ForkMulDev(unsigned int dev_arr[],msgQueenDataType *myarg);
-//将source_arg字符串按照空格进行拆分放入指针数组result中
-//最多拆分成arg_count个参数
-//每个参数长度最大为ARG_LEN
-//实际拆分出来的参数长度保存在used_count中
-int split_arg_by_space(char *source_arg,char (*result)[ARG_LEN],int arg_count,int *used_count);
 #endif

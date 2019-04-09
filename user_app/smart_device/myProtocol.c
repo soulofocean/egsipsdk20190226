@@ -6,25 +6,9 @@
 #include "myMQ.h"
 #include "egsip_util.h"
 #include <time.h>
-
-const char sysTimeFlag[] = "===SYSTEM_TIME===";
-const char devTypeFlag[] = "===DEV_TYPE===";
-const char subDevTypeFlag[] = "===SUB_DEV_TYPE===";
-const char devIdFlag[] = "===DEV_ID===";
-const char subDevIDFlag[] = "===SUB_DEV_ID===";
-const char recordTypeFlag[] = "===REC_TYPE===";
-const char credenceTypeFlag[] = "===CRE_TYPE===";
-const char credenceNoFlag[] = "===CRE_NO===";
-const char entryTypeFlag[] = "===ENTRY_TYPE===";
-const char devMacFlag[] = "===DEV_MAC===";
-const char gateOpenModeFlag[] = "===GATE_OPEN_MODE===";
-const char imgPathFlag[] = "===IMG_PATH===";
-const char passTypeFlag[] = "===PASS_TYPE===";
 unsigned int global_fork_us = 1000;
-size_t MinSize(size_t s1,size_t s2)
-{
-	return s1<s2?s1:s2;
-}
+DEV_MSG_ACK_ENUM global_ack_type = NO_ACK;
+long global_msg_type = SOCKET_SEND_MSG_TYPE;
 int Update_Dev_Fork_List(unsigned int arr[], int arrIndex, EGSIP_DEV_TYPE devType, int devCount)
 {
 	if(arrIndex > DEV_FORK_LIST_MAX_SIZE - 1){
@@ -34,108 +18,136 @@ int Update_Dev_Fork_List(unsigned int arr[], int arrIndex, EGSIP_DEV_TYPE devTyp
 	arr[arrIndex] = GetMQMsgType(devType,devCount);
 	return EGSIP_RET_SUCCESS;
 }
-int my_itoa(int intValue,char *outStr,int str_len)
+unsigned int GetMQMsgType(int dev_type,int dev_offset)
 {
-	return snprintf(outStr,str_len,"%d",intValue);
+	return (dev_type << DEV_INDEX_OFFSET) + dev_offset;
 }
-int get_current_time_str(int withT,char*outStr)
+unsigned int GetDevType(unsigned int msg_type)
 {
-	time_t nowtim;
-	struct tm *tm_now ;
-	time(&nowtim) ;
-	tm_now = localtime(&nowtim);
-	if(withT == 1)
+	return msg_type>>DEV_INDEX_OFFSET;
+}
+unsigned int GetDevCount(unsigned int msg_type)
+{
+	return msg_type & DEV_OFFSET_OP;
+}
+int PutRsvMQ(msg_struct msgs)
+{
+	return Enqueue_MQ(SOCKET_RSV_MQ_KEY, msgs, MQ_SEND_BUFF, ipc_no_wait);
+}
+int PutSendMQ(int code,const char* func_name,char * info)
+{
+	msg_struct msgs;
+	memset(&msgs,0,sizeof(msg_struct));
+	msgs.msgType = global_msg_type;
+	char tmp[MQ_INFO_BUFF] = {0};
+	#if 0 
+	//这些操作放在Client端执行替换就可以了，此处不做处理
+	char jsonmsg[MQ_INFO_BUFF] = {0};
+	if(strstr(info,"{")==NULL)
 	{
-		sprintf(outStr, "%.4d-%.2d-%.2dT%.2d:%.2d:%.2d",
-			tm_now->tm_year+1900, tm_now->tm_mon+1,tm_now->tm_mday, tm_now->tm_hour, 
-			tm_now->tm_min, tm_now->tm_sec);
+		snprintf(tmp,MQ_INFO_BUFF-1,"{\"pid\":\%u,\"code\":%d,\"func\":\"\%s\",\"info\":\"%s\"}",getpid(),code,func_name,info);
 	}
 	else
 	{
-		sprintf(outStr, "%.4d-%.2d-%.2d %.2d:%.2d:%.2d",
-			tm_now->tm_year+1900, tm_now->tm_mon+1,tm_now->tm_mday, tm_now->tm_hour, 
-			tm_now->tm_min, tm_now->tm_sec);
+		snprintf(tmp,MQ_INFO_BUFF-1,"{\"pid\":\%u,\"code\":%d,\"func\":\"\%s\",\"info\":%s}",getpid(),code,func_name,info);
 	}
-	egsip_log_debug("timeStr = [%s]\n",outStr);
-	return 0;
+	replace_string(jsonmsg, tmp, "\"{", "{");
+	strncpy(tmp,jsonmsg,MQ_INFO_BUFF-1);
+	replace_string(jsonmsg, tmp, "}\"", "}");
+	strncpy(tmp,jsonmsg,MQ_INFO_BUFF-1);
+	#else
+	snprintf(tmp,MQ_INFO_BUFF-1,"{\"pid\":\%u,\"code\":%d,\"func\":\"\%s\",\"info\":\"%s\"}",getpid(),code,func_name,info);
+	#endif
+	strncpy(msgs.msgData.info,tmp,sizeof(msgs.msgData.info)-1);
+	return Enqueue_MQ(SOCKET_SEND_MQ_KEY, msgs, MQ_SEND_BUFF, ipc_no_wait);
 }
-int replace_system_time(char *result,char *source)
+int PutSendShortMQ(int status_code)
 {
-	char now[100] = {0};
-	time_t nowtim;
-	struct tm *tm_now ;
-	time(&nowtim) ;
-	tm_now = localtime(&nowtim) ;		
-	sprintf(now, "%.4d-%.2d-%.2d %.2d:%.2d:%.2d",
-		tm_now->tm_year+1900, tm_now->tm_mon+1,tm_now->tm_mday, tm_now->tm_hour, 
-		tm_now->tm_min, tm_now->tm_sec);
-	return replace_string(result, source, sysTimeFlag, now);
-}
-int replace_dev_id(char *result,char *source, char *dev_id)
-{
-	return replace_string(result, source, devIdFlag, dev_id);
-}
-int replace_sub_dev_id(char *result,char *source, char *sub_dev_id)
-{
-	return replace_string(result, source, subDevIDFlag, sub_dev_id);
-}
-int replace_dev_type(char *result,char *source, int dev_type)
-{
-	char tmp[11] = {0};
-	my_itoa(dev_type, tmp, sizeof(tmp));
-	return replace_string(result, source, devTypeFlag, tmp);
-}
-int replace_sub_dev_type(char *result,char *source, int sub_dev_type)
-{
-	char tmp[11] = {0};
-	my_itoa(sub_dev_type, tmp, sizeof(tmp));
-	return replace_string(result, source, subDevTypeFlag, tmp);
-}
-int replace_record_type(char *result,char *source, int record_type)
-{
-	char tmp[11] = {0};
-	my_itoa(record_type, tmp, sizeof(tmp));
-	return replace_string(result, source, recordTypeFlag, tmp);
-}
-int replace_credence_type(char *result,char *source, int credence_type)
-{
-	char tmp[11] = {0};
-	my_itoa(credence_type, tmp, sizeof(tmp));
-	return replace_string(result, source, credenceTypeFlag, tmp);
-}
-int replace_credence_no(char *result,char *source, char *credence_no)
-{
-	return replace_string(result, source, credenceNoFlag, credence_no);
-}
-int replace_entry_type(char *result,char *source, int entry_type)
-{
-	char tmp[11] = {0};
-	my_itoa(entry_type, tmp, sizeof(tmp));
-	return replace_string(result, source, entryTypeFlag, tmp);
-}
-int replace_dev_mac(char *result,char *source, char *dev_mac)
-{
-	return replace_string(result, source, devMacFlag, dev_mac);
-}
-int replace_gate_open_mode(char *result,char *source, int gate_open_mode)
-{
-	char tmp[11] = {0};
-	my_itoa(gate_open_mode, tmp, sizeof(tmp));
-	return replace_string(result, source, gateOpenModeFlag, tmp);
+	msg_short_struct msgs;
+	memset(&msgs,0,sizeof(msg_short_struct));
+	msgs.msgType = global_msg_type;
+	msgs.msgData.statusCode = status_code;
+	return Enqueue_MQ_Short(SOCKET_SEND_SHORT_MQ_KEY, msgs, MQ_SEND_BUFF_SHORT, ipc_no_wait);
 }
 
-int replace_img_path(char *result,char *source, char *img_path)
+int PutDispatchMQ(int dev_type,int dev_index,char* info)
 {
-	return replace_string(result, source, imgPathFlag, img_path);
+	egsip_log_debug("Enter PutDispatchMQ dev_type=[%d] dev_index=[%d] info=[%s]\n",dev_type,dev_index,info);
+	msg_struct msgs;
+	msgs.msgType = GetMQMsgType(dev_type, dev_index);
+	msgs.msgData.devType = dev_type;
+	msgs.msgData.offset = dev_index;
+	strncpy(msgs.msgData.info,info,sizeof(msgs.msgData.info));
+	return Enqueue_MQ(GetDispatchMQKey(msgs.msgType), msgs, MQ_SEND_BUFF, ipc_no_wait);
 }
-int replace_pass_type(char *result,char *source, int pass_type)
+int PutDispatchNMQ(msg_struct msgs,int put_count)
 {
-	char tmp[11] = {0};
-	my_itoa(pass_type, tmp, sizeof(tmp));
-	return replace_string(result, source, passTypeFlag, tmp);
+	int index = 0;
+	int ret = 0;
+	for(;index<put_count;++index){
+		ret = Enqueue_MQ(GetDispatchMQKey(msgs.msgType), msgs, MQ_SEND_BUFF, ipc_no_wait);
+		if(ret < 0)
+			return ret;
+		if(index<put_count){
+			msgs.msgType++;
+			msgs.msgData.offset++;
+		}
+	}
+	return ret;
 }
 
+int GetRsvMQ(msg_struct *msgbuff)
+{
+	return Dequeue_MQ(SOCKET_RSV_MQ_KEY, 0, msgbuff, MQ_RSV_BUFF, ipc_need_wait);
+}
+int GetSendMQ(msg_struct *msgbuff)
+{
+	return Dequeue_MQ(SOCKET_SEND_MQ_KEY, 0, msgbuff, MQ_RSV_BUFF, ipc_need_wait);
+}
+int GetSendShortMQ(msg_short_struct *msgbuff)
+{
+	return Dequeue_MQ_Short(SOCKET_SEND_SHORT_MQ_KEY, 0, msgbuff, MQ_RSV_BUFF_SHORT, ipc_need_wait);
+}
 
+int GetDispatchMQ(long msgType,msg_struct *msgbuff)
+{
+	return Dequeue_MQ(GetDispatchMQKey(msgType), 0, msgbuff, MQ_RSV_BUFF, ipc_need_wait);
+}
+int DelDispatchMQ(long msgType)
+{
+	return Delete_MQ(GetDispatchMQKey(msgType));
+}
+void DevMsgAck(int code,const char* func_name,char* msg)
+{
+	egsip_log_debug("enter.\n");
+	egsip_log_debug("pid=[%u] code=[%d] msg=[%s]\n",getpid(),code,msg);
+	EGSIP_RET_CODE ret = EGSIP_RET_ERROR;
+	//后续useLongMsg可能扩展成枚举，这里先直接判断
+	switch (global_ack_type)
+	{
+		case LONG_ACK:
+		{
+			ret = PutSendMQ(code,func_name,msg);
+			break;
+		}
+		case SHORT_ACK:
+		{
+			ret = PutSendShortMQ(code);
+			break;
+		}
+		case NO_ACK:
+		{
+			egsip_log_debug("PID[%d] is set NO_ACK\n",getpid());
+			break;
+		}
+		default:
+		{
+			egsip_log_error("Invalid Type:[%d]\n",global_ack_type);
+			break;
+		}
+	}
+	egsip_log_debug("pid:[%d] global_ack_type=[%d] ret=[%d]\n",getpid(),global_ack_type,ret);
+}
 int ForkMulDev(unsigned int dev_arr[],msgQueenDataType *myarg)
 {
 	int index = 0;
@@ -173,44 +185,4 @@ int ForkMulDev(unsigned int dev_arr[],msgQueenDataType *myarg)
 			break;
 	}
 	return 0;
-}
-int split_arg_by_space(char *source_arg,char (*result)[ARG_LEN],int arg_count,int *used_count)
-{
-	int ret = 0;
-	//计算理论上空格加上参数的总长度,arg_count意为最大拆分的长度，目前按照dev_ctl 0 0 record arg最长5个
-	int max_len = ARG_ARR_COUNT*ARG_LEN+arg_count-1;
-	*used_count = 0;
-	if(strlen(source_arg)>max_len){
-		egsip_log_error("source_arg too long[len=%d]\n",strlen(source_arg));
-		return -1;
-	}
-	int arg_index = 0;
-	char tmp[max_len+1];
-	memset(tmp,0,max_len+1);
-	for(arg_index=0;arg_index<arg_count;++arg_index){
-		memset(result[arg_index],0,sizeof(result[arg_index]));
-	}
-	strcpy(tmp,source_arg);
-	for(arg_index=0;arg_index<arg_count-1;++arg_index){
-		sscanf(tmp,"%s %[^\n]",result[arg_index],result[arg_index+1]);
-		if(strcmp(result[arg_index],"\0")==0){
-			break;
-		}
-		(*used_count)++;
-		strcpy(tmp,result[arg_index+1]);
-	}
-	if(arg_index == arg_count-1 && strcmp(result[arg_index],"\0")!=0 && *used_count<ARG_ARR_COUNT)
-	{
-		(*used_count)++;
-	}
-//	if(arg_index==arg_count-1)
-//	{
-//		(*used_count)++;
-//	}
-	//display result
-	egsip_log_debug("usedcount=[%d]\n",*used_count);
-	for(arg_index=0;arg_index<ARG_ARR_COUNT;++arg_index){
-		egsip_log_info("result[%d]=[%s]\tcompare:%d\n",arg_index,result[arg_index],strcmp(result[arg_index],"\0"));
-	}
-	return ret;
 }

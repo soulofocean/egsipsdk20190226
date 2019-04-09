@@ -6,6 +6,8 @@
 #include <camera/egsip_camera.h>
 
 #include "myProtocol.h"
+#include "myCommonAPI.h"
+
 
 #define  MAX_COMMAND 5   //每个IPC一次最多发送5条告警
 
